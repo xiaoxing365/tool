@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>页面没找到 - 小兴365</title>
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
+    --hover-bg: #f9fafb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111; --fg: #e5e5e5; --muted: #8a8a8a; --border: #262626;
+      --hover-bg: #1a1a1a;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.6;
+    font-size: 15px; -webkit-font-smoothing: antialiased;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .box {
+    max-width: 420px;
+    width: 100%;
+    text-align: left;
+    padding-bottom: 20vh;
+  }
+  .code {
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: var(--border);
+    margin-bottom: 18px;
+    user-select: none;
+  }
+  h1 {
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 26px;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .links a {
+    font-size: 13px;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--fg);
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .links a:hover {
+    background: var(--hover-bg);
+    border-color: var(--fg);
+  }
+  .links a.primary {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+  .links a.primary:hover {
+    opacity: 0.85;
+  }
+  @media (max-width: 480px) {
+    body { padding: 20px; align-items: flex-start; padding-top: 18vh; }
+    .box { padding-bottom: 0; }
+    .code { font-size: 52px; }
+    h1 { font-size: 18px; }
+    p { font-size: 13px; }
+    .links a { font-size: 13px; padding: 8px 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="code">404</div>
+    <h1>这个页面不存在</h1>
+    <p>你访问的地址可能已经删掉、改名了，或者从来没有过。可以回首页看看，或者去博客那边转转。</p>
+    <div class="links">
+      <a class="primary" href="/">回首页</a>
+      <a href="https://xiaoxing365.com/">去博客</a>
+    </div>
+  </div>
+</body>
+</html>
