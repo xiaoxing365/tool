@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudflare 重定向表达式生成器 - 小兴365</title>
+<meta name="description" content="填旧域名和新域名，生成能直接粘进 Cloudflare 重定向规则的表达式。">
+<style>
+  :root {
+    --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
+    --accent: #2563eb; --hover-bg: #f9fafb; --input-bg: #fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111; --fg: #e5e5e5; --muted: #8a8a8a; --border: #262626;
+      --accent: #60a5fa; --hover-bg: #1a1a1a; --input-bg: #1a1a1a;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.6;
+    font-size: 15px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 40px 0 28px; border-bottom: 1px solid var(--border); }
+  header a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  header a:hover { color: var(--fg); }
+  header h1 { font-size: 20px; font-weight: 600; margin-top: 14px; letter-spacing: -0.3px; }
+  header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  main { padding: 28px 0 40px; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; margin-top: 18px; }
+  label:first-child { margin-top: 0; }
+  input[type="text"] {
+    width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit;
+    background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--fg); outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
+  .checkbox-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .checkbox-row label { margin: 0; font-size: 14px; color: var(--fg); font-weight: 400; }
+  .output { margin-top: 28px; }
+  .output-block { margin-top: 16px; }
+  .output-block .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .output-block span.label { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .copy-btn {
+    font-size: 12px; padding: 3px 10px; border: 1px solid var(--border);
+    border-radius: 5px; background: var(--bg); color: var(--fg); cursor: pointer;
+    font-family: inherit;
+  }
+  .copy-btn:hover { background: var(--hover-bg); }
+  pre {
+    background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px; font-size: 13px; overflow-x: auto; white-space: pre-wrap;
+    word-break: break-all; font-family: "SF Mono", Consolas, monospace; line-height: 1.5;
+  }
+  footer { padding: 20px 0 60px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); }
+  footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); }
+  footer a:hover { color: var(--fg); }
+  .note { font-size: 13px; color: var(--muted); margin-top: 24px; line-height: 1.7; }
+  .note code { background: var(--input-bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>Cloudflare 重定向表达式生成器</h1>
+    <p>填旧域名和新域名，生成能直接粘进 Cloudflare 重定向规则的表达式。</p>
+  </header>
+
+  <main>
+    <label>旧域名（要跳转的）</label>
+    <input type="text" id="oldDomain" placeholder="xiaoxing365.top" autocomplete="off">
+
+    <label>新域名（跳转目标）</label>
+    <input type="text" id="newDomain" placeholder="xiaoxing365.com" autocomplete="off">
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="keepPath" checked>
+      <label for="keepPath">保留路径和参数</label>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="includeWww">
+      <label for="includeWww">同时匹配 www 子域名</label>
+    </div>
+
+    <div class="output">
+      <div class="output-block">
+        <div class="label-row">
+          <span class="label">匹配表达式（When incoming requests match）</span>
+          <button class="copy-btn" data-target="matchExpr">复制</button>
+        </div>
+        <pre id="matchExpr">等待输入…</pre>
+      </div>
+
+      <div class="output-block">
+        <div class="label-row">
+          <span class="label">目标 URL（Then... 动态表达式）</span>
+          <button class="copy-btn" data-target="targetExpr">复制</button>
+        </div>
+        <pre id="targetExpr">等待输入…</pre>
+      </div>
+    </div>
+
+    <div class="note">
+      在 Cloudflare 里创建规则：<br>
+      <code>规则 → 重定向规则 → 创建规则</code><br>
+      匹配表达式粘到「当传入请求匹配时」，目标 URL 粘到「则… → 动态」。<br>
+      状态码选 <code>301</code>（永久重定向）。
+    </div>
+  </main>
+
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+
+<script>
+  var oldInput = document.getElementById('oldDomain');
+  var newInput = document.getElementById('newDomain');
+  var keepPath = document.getElementById('keepPath');
+  var includeWww = document.getElementById('includeWww');
+  var matchEl = document.getElementById('matchExpr');
+  var targetEl = document.getElementById('targetExpr');
+
+  function cleanDomain(v) {
+    return v.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  }
+
+  function update() {
+    var oldD = cleanDomain(oldInput.value);
+    var newD = cleanDomain(newInput.value);
+
+    if (!oldD || !newD) {
+      matchEl.textContent = '等待输入…';
+      targetEl.textContent = '等待输入…';
+      return;
+    }
+
+    var matchParts = ['(http.host eq "' + oldD + '")'];
+    if (includeWww.checked && oldD.indexOf('www.') !== 0) {
+      matchParts.push('(http.host eq "www.' + oldD + '")');
+    }
+    matchEl.textContent = matchParts.join(' or ');
+
+    var target;
+    if (keepPath.checked) {
+      target = 'concat("https://' + newD + '", http.request.uri.path)';
+    } else {
+      target = '"https://' + newD + '/"';
+    }
+    targetEl.textContent = target;
+  }
+
+  oldInput.addEventListener('input', update);
+  newInput.addEventListener('input', update);
+  keepPath.addEventListener('change', update);
+  includeWww.addEventListener('change', update);
+
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var el = document.getElementById(btn.getAttribute('data-target'));
+      var text = el.textContent;
+      if (!text || text === '等待输入…') return;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = '已复制';
+        setTimeout(function() { btn.textContent = '复制'; }, 1500);
+      }).catch(function() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.textContent = '已复制';
+        setTimeout(function() { btn.textContent = '复制'; }, 1500);
+      });
+    });
+  });
+</script>
+</body>
+</html>
