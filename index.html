@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小兴365 工具站</title>
+  <meta name="description" content="小兴365 的在线小工具，都是做站时顺手写的，用得上就拿去用。">
+  <meta name="keywords" content="在线工具,建站工具,Cloudflare,Hexo,robots.txt">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1a1a1a;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --hover-bg: #f9fafb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111111;
+        --fg: #e5e5e5;
+        --muted: #8a8a8a;
+        --border: #262626;
+        --accent: #60a5fa;
+        --hover-bg: #1a1a1a;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      font-size: 15px;
+    }
+    .wrap {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    header {
+      padding: 56px 0 36px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    header p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    main { padding: 6px 0; }
+    .tool {
+      display: block;
+      padding: 18px 12px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      margin: 0 -12px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .tool:hover { background: var(--hover-bg); }
+    .tool h2 {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .tool p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .tool.soon { opacity: 0.45; pointer-events: none; }
+    footer {
+      padding: 36px 0 60px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.9;
+    }
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+    }
+    footer a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+    .btn {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: var(--hover-bg); border-color: var(--fg); }
+    @media (max-width: 480px) {
+      header { padding: 40px 0 28px; }
+      header h1 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>小兴365 工具站</h1>
+      <p>做站时顺手写的小工具，用得上就拿去用。</p>
+    </header>
+
+    <main>
+      <a class="tool" href="/redirect-generator/">
+        <h2>Cloudflare 重定向表达式生成器</h2>
+        <p>填旧域名和新域名，生成能直接粘进 Cloudflare 重定向规则的表达式。</p>
+      </a>
+
+      <a class="tool" href="/robots-generator/">
+        <h2>robots.txt 生成器</h2>
+        <p>勾一下要屏蔽的目录，生成一份能直接用的 robots.txt。</p>
+      </a>
+
+      <a class="tool" href="/front-matter/">
+        <h2>Hexo Front-matter 生成器</h2>
+        <p>填标题、日期、分类、标签，生成 Hexo 文章的 YAML 头。</p>
+      </a>
+
+      <a class="tool" href="/meta-generator/">
+        <h2>Meta 标签生成器</h2>
+        <p>生成 title、description、keywords，还有 Open Graph 和 Twitter Card。</p>
+      </a>
+
+      <a class="tool" href="/encoding-converter/">
+        <h2>文本编码转换器</h2>
+        <p>UTF-8 和 GBK 互转，中文乱码的时候用得上。</p>
+      </a>
+
+      <div class="tool soon">
+        <h2>JSON 格式化</h2>
+        <p>还没写。</p>
+      </div>
+    </main>
+
+    <footer>
+      <div>博客在 <a href="https://xiaoxing365.com/">xiaoxing365.com</a>，写点建站和折腾的记录。</div>
+      <div>有问题发邮件：<a href="mailto:mcxiaoxing365@163.com">mcxiaoxing365@163.com</a></div>
+      <a class="btn" href="https://xiaoxing365.com/">去博客看看</a>
+    </footer>
+  </div>
+</body>
+</html>
