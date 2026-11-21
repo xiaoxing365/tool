@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>密码生成器 - 小兴365</title>
+<meta name="description" content="生成随机高强度密码">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>密码生成器</h1>
+    <p>生成随机高强度密码</p>
+  </header>
+  <main>
+    <label for="lenInput">密码长度（4-64）</label>
+    <input type="number" id="lenInput" value="16" min="4" max="64">
+
+    <label>字符类型</label>
+    <div class="grid-2">
+      <div class="checkbox-row">
+        <input type="checkbox" id="optUpper" checked>
+        <label for="optUpper">大写字母 A-Z</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="optLower" checked>
+        <label for="optLower">小写字母 a-z</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="optDigit" checked>
+        <label for="optDigit">数字 0-9</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="optSymbol" checked>
+        <label for="optSymbol">符号 !@#$…</label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="primary" id="genBtn">生成</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="output">
+      <div class="label-row">
+        <span class="label">生成的密码</span>
+        <button type="button" class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <input type="text" id="output" readonly placeholder="生成的密码会显示在这里">
+    </div>
+    <p class="hint">使用 crypto.getRandomValues 生成；每类选中的字符至少包含一个，然后整体打乱。</p>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var lenInput = $('lenInput'), genBtn = $('genBtn');
+  var statusEl = $('status'), outputEl = $('output'), copyBtn = $('copyBtn');
+  var groups = {
+    upper: { el: $('optUpper'), chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
+    lower: { el: $('optLower'), chars: 'abcdefghijklmnopqrstuvwxyz' },
+    digit: { el: $('optDigit'), chars: '0123456789' },
+    symbol: { el: $('optSymbol'), chars: '!@#$%^&*()-_=+[]{};:,.?/' }
+  };
+
+  function randInt(max) {
+    var arr = new Uint32Array(1);
+    var limit = Math.floor(4294967296 / max) * max;
+    var x;
+    do { crypto.getRandomValues(arr); x = arr[0]; } while (x >= limit);
+    return x % max;
+  }
+
+  function generate() {
+    statusEl.textContent = '';
+    outputEl.value = '';
+
+    var n = parseInt(lenInput.value, 10);
+    if (isNaN(n)) { statusEl.textContent = '请输入有效的长度'; return; }
+    if (n < 4 || n > 64) { statusEl.textContent = '长度需在 4 到 64 之间'; return; }
+
+    if (!window.crypto || typeof crypto.getRandomValues !== 'function') {
+      statusEl.textContent = '当前浏览器不支持安全随机数生成';
+      return;
+    }
+
+    var selected = [];
+    Object.keys(groups).forEach(function (key) {
+      if (groups[key].el.checked) selected.push(groups[key].chars);
+    });
+    if (selected.length === 0) { statusEl.textContent = '请至少选择一类字符'; return; }
+
+    var pool = selected.join('');
+    var chars = [];
+    selected.forEach(function (set) { chars.push(set[randInt(set.length)]); });
+    while (chars.length < n) chars.push(pool[randInt(pool.length)]);
+
+    for (var i = chars.length - 1; i > 0; i--) {
+      var j = randInt(i + 1);
+      var tmp = chars[i]; chars[i] = chars[j]; chars[j] = tmp;
+    }
+    outputEl.value = chars.join('');
+  }
+
+  genBtn.addEventListener('click', generate);
+
+  copyBtn.addEventListener('click', function () {
+    var text = outputEl.value;
+    if (!text) return;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

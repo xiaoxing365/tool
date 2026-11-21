@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 编码解码 - 小兴365</title>
+<meta name="description" content="UTF-8 文本和 Base64 互转">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>Base64 编码解码</h1>
+    <p>UTF-8 文本和 Base64 互转</p>
+  </header>
+  <main>
+    <label for="input">输入文本</label>
+    <textarea id="input" placeholder="把要编码或解码的文本粘到这里"></textarea>
+
+    <div class="actions">
+      <button type="button" class="primary" id="encodeBtn">编码</button>
+      <button type="button" class="secondary" id="decodeBtn">解码</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="output">
+      <div class="label-row">
+        <span class="label">输出结果</span>
+        <button type="button" class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <pre id="output"></pre>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var inputEl = $('input'), outputEl = $('output'), statusEl = $('status');
+  var encodeBtn = $('encodeBtn'), decodeBtn = $('decodeBtn'), copyBtn = $('copyBtn');
+
+  function run(encode) {
+    var text = inputEl.value;
+    statusEl.textContent = '';
+    outputEl.textContent = '';
+    if (!text) return;
+    try {
+      outputEl.textContent = encode
+        ? btoa(unescape(encodeURIComponent(text)))
+        : decodeURIComponent(escape(atob(text.trim())));
+    } catch (e) {
+      outputEl.textContent = '';
+      statusEl.textContent = (encode ? '编码失败：' : '解码失败：') + (e.message || '请检查输入内容');
+    }
+  }
+
+  encodeBtn.addEventListener('click', function () { run(true); });
+  decodeBtn.addEventListener('click', function () { run(false); });
+
+  copyBtn.addEventListener('click', function () {
+    var text = outputEl.textContent;
+    if (!text) return;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

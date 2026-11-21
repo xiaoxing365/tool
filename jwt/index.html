@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JWT 解码器 - 小兴365</title>
+<meta name="description" content="查看 JWT 的 Header 和 Payload">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>JWT 解码器</h1>
+    <p>查看 JWT 的 Header 和 Payload</p>
+  </header>
+  <main>
+    <label for="token">JWT Token</label>
+    <textarea id="token" rows="6" placeholder="粘贴形如 xxxxx.yyyyy.zzzzz 的 JWT" spellcheck="false"></textarea>
+
+    <div class="actions">
+      <button type="button" class="primary" id="decodeBtn">解码</button>
+      <button type="button" class="copy-btn" id="copyBtn">复制</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="note">只做解码展示，不验证签名。</div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">Header</span>
+        <span class="badge" id="sigLen">签名段长度：—</span>
+      </div>
+      <pre id="headerOut">等待解码…</pre>
+    </div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">Payload</span>
+      </div>
+      <pre id="payloadOut">等待解码…</pre>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var tokenEl = $('token'), statusEl = $('status');
+  var headerEl = $('headerOut'), payloadEl = $('payloadOut'), sigLenEl = $('sigLen');
+  var combinedText = '';
+
+  function utf8Decode(bytes) {
+    var out = '', i = 0;
+    while (i < bytes.length) {
+      var b = bytes[i++];
+      if (b < 0x80) {
+        out += String.fromCharCode(b);
+      } else if (b < 0xE0) {
+        out += String.fromCharCode(((b & 0x1F) << 6) | (bytes[i++] & 0x3F));
+      } else if (b < 0xF0) {
+        out += String.fromCharCode(((b & 0x0F) << 12) | ((bytes[i++] & 0x3F) << 6) | (bytes[i++] & 0x3F));
+      } else if (b < 0xF8) {
+        var cp = ((b & 0x07) << 18) | ((bytes[i++] & 0x3F) << 12) | ((bytes[i++] & 0x3F) << 6) | (bytes[i++] & 0x3F);
+        cp -= 0x10000;
+        out += String.fromCharCode(0xD800 + (cp >> 10), 0xDC00 + (cp & 0x3FF));
+      }
+    }
+    return out;
+  }
+
+  function decodeSegment(segment) {
+    var b64 = segment.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    var binary = atob(b64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return utf8Decode(bytes);
+  }
+
+  function decode() {
+    statusEl.textContent = '';
+    combinedText = '';
+    var token = tokenEl.value.trim();
+    if (!token) {
+      statusEl.textContent = '请先粘贴一个 JWT。';
+      return;
+    }
+    var parts = token.split('.');
+    if (parts.length !== 3) {
+      statusEl.textContent = '不是有效的 JWT：应包含三段，用英文句点 . 分隔。';
+      return;
+    }
+    try {
+      var header = JSON.stringify(JSON.parse(decodeSegment(parts[0])), null, 2);
+      var payload = JSON.stringify(JSON.parse(decodeSegment(parts[1])), null, 2);
+      headerEl.textContent = header;
+      payloadEl.textContent = payload;
+      sigLenEl.textContent = '签名段长度：' + parts[2].length + ' 字符';
+      combinedText = 'Header:\n' + header + '\n\nPayload:\n' + payload;
+    } catch (e) {
+      headerEl.textContent = '等待解码…';
+      payloadEl.textContent = '等待解码…';
+      sigLenEl.textContent = '签名段长度：—';
+      statusEl.textContent = '解码失败：' + (e.message || '请确认这是有效的 JWT');
+    }
+  }
+
+  $('decodeBtn').addEventListener('click', decode);
+
+  $('copyBtn').addEventListener('click', function () {
+    var btn = this;
+    if (!combinedText) return;
+    function done() {
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = combinedText;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(combinedText).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

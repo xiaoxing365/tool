@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>robots.txt 生成器 - 小兴365</title>
-<meta name="description" content="勾一下要屏蔽的目录，生成一份能直接用的 robots.txt。">
+<meta name="description" content="勾目录、按 UA 和 AI 爬虫屏蔽、填抓取延迟，生成一份能直接用的 robots.txt。">
 <style>
   :root {
     --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
@@ -22,28 +22,31 @@
     background: var(--bg); color: var(--fg); line-height: 1.6;
     font-size: 15px; -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 620px; margin: 0 auto; padding: 0 20px; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
   header { padding: 40px 0 28px; border-bottom: 1px solid var(--border); }
   header a { color: var(--muted); text-decoration: none; font-size: 13px; }
   header a:hover { color: var(--fg); }
   header h1 { font-size: 20px; font-weight: 600; margin-top: 14px; letter-spacing: -0.3px; }
   header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
   main { padding: 28px 0 40px; }
-  .section-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 22px; margin-bottom: 10px; }
+  .section-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 26px; margin-bottom: 10px; }
   .section-label:first-child { margin-top: 0; }
+  .sub-label { font-size: 12.5px; color: var(--muted); margin: 14px 0 8px; }
   .checkbox-list { display: flex; flex-direction: column; gap: 8px; }
+  .preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .checkbox-row { display: flex; align-items: center; gap: 8px; }
   .checkbox-row input { width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; }
   .checkbox-row label { font-size: 14px; color: var(--fg); font-weight: 400; margin: 0; }
   .checkbox-row code { font-size: 12px; color: var(--muted); font-family: "SF Mono", Consolas, monospace; }
-  input[type="text"], textarea {
+  input[type="text"], input[type="number"], textarea {
     width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit;
     background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
     color: var(--fg); outline: none;
   }
-  input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+  input[type="text"]:focus, input[type="number"]:focus, textarea:focus { border-color: var(--accent); }
   textarea { resize: vertical; min-height: 70px; font-family: "SF Mono", Consolas, monospace; font-size: 13px; }
-  .output { margin-top: 28px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
+  .output { margin-top: 30px; }
   .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
   .label-row span.label { font-size: 13px; font-weight: 500; color: var(--muted); }
   .copy-btn {
@@ -60,18 +63,37 @@
   footer { padding: 20px 0 60px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); }
   footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); }
   footer a:hover { color: var(--fg); }
+  .ai-grid { display: flex; flex-direction: column; gap: 8px; }
+  .ai-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
+  }
+  .ai-info { min-width: 0; }
+  .ai-name { font-size: 14px; color: var(--fg); font-weight: 500; }
+  .ai-token { font-size: 12px; color: var(--muted); font-family: "SF Mono", Consolas, monospace; margin-left: 6px; }
+  .ai-note { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .ai-select { width: 112px; flex-shrink: 0; }
+  @media (max-width: 520px) {
+    .preset-grid { grid-template-columns: 1fr; }
+    .ai-row { flex-direction: column; align-items: stretch; }
+    .ai-select { width: 100%; }
+  }
 </style>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
 </head>
 <body>
 <div class="wrap">
   <header>
     <a href="/">← 回首页</a>
     <h1>robots.txt 生成器</h1>
-    <p>勾一下要屏蔽的目录，生成一份能直接用的 robots.txt。</p>
+    <p>勾目录、按 UA 和 AI 爬虫屏蔽、填抓取延迟，生成一份能直接用的 robots.txt。</p>
   </header>
 
   <main>
-    <div class="section-label">屏蔽常见目录</div>
+    <div class="section-label">默认规则（User-agent: *）</div>
+
+    <div class="sub-label">屏蔽常见目录</div>
     <div class="checkbox-list">
       <div class="checkbox-row"><input type="checkbox" id="css"><label for="css">CSS 目录 <code>/css/</code></label></div>
       <div class="checkbox-row"><input type="checkbox" id="js"><label for="js">JS 目录 <code>/js/</code></label></div>
@@ -80,10 +102,54 @@
       <div class="checkbox-row"><input type="checkbox" id="assets"><label for="assets">资源目录 <code>/assets/</code></label></div>
     </div>
 
-    <div class="section-label">自定义屏蔽路径（可选）</div>
+    <div class="sub-label">自定义屏蔽路径（可选）</div>
     <textarea id="customPaths" placeholder="/admin/&#10;/private/&#10;每行一个"></textarea>
 
-    <div class="section-label">Sitemap 地址（可选）</div>
+    <div class="sub-label">允许抓取的路径（可选）</div>
+    <textarea id="allowPaths" placeholder="/public/&#10;/api/open/&#10;每行一个"></textarea>
+
+    <div class="sub-label">禁止抓取的文件类型（可选）</div>
+    <input type="text" id="fileTypes" placeholder="pdf,doc,zip" autocomplete="off">
+    <div class="hint">会生成类似 <code>Disallow: /*.pdf$</code> 的规则。</div>
+
+    <div class="sub-label">抓取延迟 Crawl-delay（可选）</div>
+    <input type="number" id="crawlDelay" placeholder="例如 10（秒）" min="0" step="1">
+    <div class="hint">不是所有搜索引擎都支持，留空就不写。</div>
+
+    <div class="section-label">按 User-Agent 设置规则</div>
+
+    <div class="sub-label">完全禁止的 UA（可选）</div>
+    <div class="preset-grid" id="blockedPresets">
+      <div class="checkbox-row"><input type="checkbox" id="ua-ahrefs" data-ua="AhrefsBot"><label for="ua-ahrefs">AhrefsBot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-semrush" data-ua="SemrushBot"><label for="ua-semrush">SemrushBot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-mj12" data-ua="MJ12bot"><label for="ua-mj12">MJ12bot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-ccbot" data-ua="CCBot"><label for="ua-ccbot">CCBot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-gptbot" data-ua="GPTBot"><label for="ua-gptbot">GPTBot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-bytespider" data-ua="Bytespider"><label for="ua-bytespider">Bytespider</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-dotbot" data-ua="DotBot"><label for="ua-dotbot">DotBot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-yisou" data-ua="YisouSpider"><label for="ua-yisou">YisouSpider</label></div>
+    </div>
+    <textarea id="blockedUaCustom" placeholder="自定义 UA，每行一个" style="margin-top:8px;"></textarea>
+
+    <div class="sub-label">单独允许的 UA（可选）</div>
+    <div class="preset-grid" id="allowedPresets">
+      <div class="checkbox-row"><input type="checkbox" id="ua-google" data-ua="Googlebot"><label for="ua-google">Googlebot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-bing" data-ua="Bingbot"><label for="ua-bing">Bingbot</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-baidu" data-ua="Baiduspider"><label for="ua-baidu">Baiduspider</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="ua-sogou" data-ua="Sogou web spider"><label for="ua-sogou">Sogou web spider</label></div>
+    </div>
+    <textarea id="allowedUaCustom" placeholder="自定义 UA，每行一个" style="margin-top:8px;"></textarea>
+
+    <div class="section-label">AI 爬虫（可选）</div>
+    <div class="hint">每个爬虫可以单独选「不设置 / 禁止 / 允许」。训练类、搜索类、用户触发类的机器人用途不同，按需要选即可；Copilot 主要依赖 Bingbot 抓取，要影响它记得在上面的允许列表里设置 Bingbot。</div>
+    <div class="ai-grid" id="aiGrid"></div>
+
+    <div class="section-label">站点声明（可选）</div>
+    <div class="sub-label">Host 地址</div>
+    <input type="text" id="host" placeholder="https://xiaoxing365.top" autocomplete="off">
+    <div class="hint">主要是 Yandex 在用，用不上就留空。</div>
+
+    <div class="sub-label">Sitemap 地址</div>
     <input type="text" id="sitemap" placeholder="https://xiaoxing365.top/sitemap.xml" autocomplete="off">
 
     <div class="output">
@@ -91,7 +157,8 @@
         <span class="label">生成的 robots.txt</span>
         <button class="copy-btn" id="copyBtn">复制</button>
       </div>
-      <pre id="output">User-agent: *</pre>
+      <pre id="output">User-agent: *
+Allow: /</pre>
     </div>
   </main>
 
@@ -101,71 +168,202 @@
 </div>
 
 <script>
-  var ids = ['css', 'js', 'images', 'fonts', 'assets'];
-  var paths = { css: '/css/', js: '/js/', images: '/images/', fonts: '/fonts/', assets: '/assets/' };
-  var customPaths = document.getElementById('customPaths');
-  var sitemap = document.getElementById('sitemap');
-  var output = document.getElementById('output');
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  var dirIds = ['css', 'js', 'images', 'fonts', 'assets'];
+  var dirPaths = { css: '/css/', js: '/js/', images: '/images/', fonts: '/fonts/', assets: '/assets/' };
+
+  var AI_BOTS = [
+    { name: 'OpenAI 训练', token: 'GPTBot', note: 'ChatGPT 训练数据' },
+    { name: 'OpenAI 搜索', token: 'OAI-SearchBot', note: 'ChatGPT 搜索索引；屏蔽后可能不出现在搜索回答里' },
+    { name: 'ChatGPT 用户触发', token: 'ChatGPT-User', note: '用户点开网页时抓取，可能不遵守 robots.txt' },
+    { name: 'Anthropic 训练', token: 'ClaudeBot', note: 'Claude 训练数据' },
+    { name: 'Claude 搜索', token: 'Claude-SearchBot', note: 'Claude 搜索索引' },
+    { name: 'Claude 用户触发', token: 'Claude-User', note: '用户请求时抓取' },
+    { name: 'Gemini / Google AI', token: 'Google-Extended', note: '控制项，不是爬虫；不影响 Google 搜索排名' },
+    { name: 'Apple Intelligence', token: 'Applebot-Extended', note: '控制项，不是爬虫；不影响 Siri / Spotlight 搜索' },
+    { name: 'DeepSeek', token: 'DeepSeekBot', note: '社区记录的 UA；官方说明较少' },
+    { name: 'Microsoft Copilot', token: 'Copilot', note: '社区记录的 UA；Copilot 主要依赖 Bingbot 抓取' },
+    { name: 'Perplexity 搜索', token: 'PerplexityBot', note: 'Perplexity 搜索索引' },
+    { name: 'Perplexity 用户触发', token: 'Perplexity-User', note: '通常不遵守 robots.txt' },
+    { name: 'Common Crawl', token: 'CCBot', note: '开放数据集，常被用来训练大模型' },
+    { name: '字节跳动', token: 'Bytespider', note: '豆包 / TikTok 等训练抓取' },
+    { name: 'Meta AI', token: 'Meta-ExternalAgent', note: 'Meta AI 训练与索引' },
+    { name: 'Amazon', token: 'Amazonbot', note: '可能用于 Amazon AI 训练' },
+    { name: 'Mistral 训练', token: 'MistralAI-Training', note: 'Mistral 训练数据' },
+    { name: 'You.com', token: 'YouBot', note: 'AI 搜索索引' }
+  ];
+
+  function linesOf(text) {
+    return String(text || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function normalizePath(p) {
+    p = String(p || '').trim();
+    return p.charAt(0) === '/' ? p : '/' + p;
+  }
+
+  function normalizeUrl(u) {
+    u = String(u || '').trim();
+    if (!u) return '';
+    return /^https?:\/\//i.test(u) ? u : 'https://' + u;
+  }
+
+  function uniqueUAs(list) {
+    var seen = {};
+    return list.filter(function (ua) {
+      ua = String(ua || '').trim();
+      var key = ua.toLowerCase();
+      if (!ua || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function selectedUAs(presetContainerId, customTextareaId) {
+    var list = [];
+    var boxes = $(presetContainerId).querySelectorAll('input[type="checkbox"]:checked');
+    Array.prototype.forEach.call(boxes, function (box) { list.push(box.getAttribute('data-ua')); });
+    linesOf($(customTextareaId).value).forEach(function (ua) { list.push(ua); });
+    return uniqueUAs(list);
+  }
+
+  function aiTokens(decision) {
+    var selects = document.querySelectorAll('.ai-select');
+    var list = [];
+    Array.prototype.forEach.call(selects, function (select) {
+      if (select.value === decision) list.push(select.getAttribute('data-token'));
+    });
+    return list;
+  }
+
+  function renderAiGrid() {
+    var grid = $('aiGrid');
+    AI_BOTS.forEach(function (bot) {
+      var row = document.createElement('div');
+      row.className = 'ai-row';
+
+      var info = document.createElement('div');
+      info.className = 'ai-info';
+      var name = document.createElement('div');
+      name.className = 'ai-name';
+      name.textContent = bot.name;
+      var token = document.createElement('span');
+      token.className = 'ai-token';
+      token.textContent = bot.token;
+      name.appendChild(token);
+      var note = document.createElement('div');
+      note.className = 'ai-note';
+      note.textContent = bot.note;
+      info.appendChild(name);
+      info.appendChild(note);
+
+      var select = document.createElement('select');
+      select.className = 'ai-select';
+      select.setAttribute('data-token', bot.token);
+      select.setAttribute('aria-label', bot.name + ' 的 robots.txt 设置');
+      [['', '不设置'], ['block', '禁止'], ['allow', '允许']].forEach(function (pair) {
+        var option = document.createElement('option');
+        option.value = pair[0];
+        option.textContent = pair[1];
+        select.appendChild(option);
+      });
+      select.addEventListener('change', update);
+
+      row.appendChild(info);
+      row.appendChild(select);
+      grid.appendChild(row);
+    });
+  }
 
   function update() {
     var lines = ['User-agent: *'];
 
-    ids.forEach(function(id) {
-      if (document.getElementById(id).checked) {
-        lines.push('Disallow: ' + paths[id]);
-      }
+    dirIds.forEach(function (id) {
+      if ($(id).checked) lines.push('Disallow: ' + dirPaths[id]);
     });
 
-    var custom = customPaths.value.trim();
-    if (custom) {
-      custom.split('\n').forEach(function(p) {
-        p = p.trim();
-        if (p) {
-          if (p.indexOf('/') !== 0) p = '/' + p;
-          lines.push('Disallow: ' + p);
-        }
-      });
-    }
+    linesOf($('customPaths').value).forEach(function (p) {
+      lines.push('Disallow: ' + normalizePath(p));
+    });
 
-    if (!lines.some(function(l) { return l.indexOf('Disallow') === 0; })) {
+    linesOf($('allowPaths').value).forEach(function (p) {
+      lines.push('Allow: ' + normalizePath(p));
+    });
+
+    var types = String($('fileTypes').value || '')
+      .split(/[,，]/).map(function (s) { return s.trim().replace(/^\*?\.?/, ''); })
+      .filter(Boolean);
+    types.forEach(function (ext) { lines.push('Disallow: /*.' + ext + '$'); });
+
+    var delay = String($('crawlDelay').value || '').trim();
+    if (delay !== '' && !isNaN(Number(delay))) lines.push('Crawl-delay: ' + Number(delay));
+
+    if (!lines.some(function (l) { return l.indexOf('Disallow: ') === 0 || l.indexOf('Allow: ') === 0; })) {
       lines.push('Allow: /');
     }
 
-    var sm = sitemap.value.trim();
+    var blocked = uniqueUAs(selectedUAs('blockedPresets', 'blockedUaCustom').concat(aiTokens('block')));
+    if (blocked.length) {
+      lines.push('');
+      blocked.forEach(function (ua) { lines.push('User-agent: ' + ua); });
+      lines.push('Disallow: /');
+    }
+
+    var allowed = uniqueUAs(selectedUAs('allowedPresets', 'allowedUaCustom').concat(aiTokens('allow')))
+      .filter(function (ua) { return blocked.indexOf(ua) === -1; });
+    if (allowed.length) {
+      lines.push('');
+      allowed.forEach(function (ua) { lines.push('User-agent: ' + ua); });
+      lines.push('Allow: /');
+    }
+
+    var host = normalizeUrl($('host').value);
+    if (host) {
+      lines.push('');
+      lines.push('Host: ' + host);
+    }
+
+    var sm = normalizeUrl($('sitemap').value);
     if (sm) {
-      if (sm.indexOf('http') !== 0) sm = 'https://' + sm;
       lines.push('');
       lines.push('Sitemap: ' + sm);
     }
 
-    output.textContent = lines.join('\n');
+    $('output').textContent = lines.join('\n');
   }
 
-  ids.forEach(function(id) {
-    document.getElementById(id).addEventListener('change', update);
+  var inputs = document.querySelectorAll('input, textarea');
+  Array.prototype.forEach.call(inputs, function (el) {
+    el.addEventListener('input', update);
+    el.addEventListener('change', update);
   });
-  customPaths.addEventListener('input', update);
-  sitemap.addEventListener('input', update);
 
-  document.getElementById('copyBtn').addEventListener('click', function() {
-    var text = output.textContent;
+  $('copyBtn').addEventListener('click', function () {
     var btn = this;
-    navigator.clipboard.writeText(text).then(function() {
+    var text = $('output').textContent;
+    function done() {
       btn.textContent = '已复制';
-      setTimeout(function() { btn.textContent = '复制'; }, 1500);
-    }).catch(function() {
+      setTimeout(function () { btn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
       var ta = document.createElement('textarea');
       ta.value = text;
       document.body.appendChild(ta);
       ta.select();
-      document.execCommand('copy');
+      try { document.execCommand('copy'); done(); } catch (e) {}
       document.body.removeChild(ta);
-      btn.textContent = '已复制';
-      setTimeout(function() { btn.textContent = '复制'; }, 1500);
-    });
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else fallback();
   });
 
+  renderAiGrid();
   update();
+})();
 </script>
 </body>
 </html>

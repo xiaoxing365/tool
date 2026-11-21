@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hexo Front-matter 生成器 - 小兴365</title>
+<meta name="description" content="填标题、日期、分类、标签，生成 Hexo 文章的 YAML 头。">
+<style>
+  :root {
+    --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
+    --accent: #2563eb; --hover-bg: #f9fafb; --input-bg: #fafafa; --error: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111; --fg: #e5e5e5; --muted: #8a8a8a; --border: #262626;
+      --accent: #60a5fa; --hover-bg: #1a1a1a; --input-bg: #1a1a1a; --error: #f87171;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.6;
+    font-size: 15px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 40px 0 28px; border-bottom: 1px solid var(--border); }
+  header a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  header a:hover { color: var(--fg); }
+  header h1 { font-size: 20px; font-weight: 600; margin-top: 14px; letter-spacing: -0.3px; }
+  header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  main { padding: 28px 0 40px; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; margin-top: 18px; }
+  label:first-child { margin-top: 0; }
+  input[type="text"], input[type="datetime-local"] {
+    width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit;
+    background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--fg); outline: none; color-scheme: light dark;
+  }
+  input[type="text"]:focus, input[type="datetime-local"]:focus { border-color: var(--accent); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .output { margin-top: 28px; }
+  .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .label-row span.label { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .copy-btn {
+    font-size: 12px; padding: 3px 10px; border: 1px solid var(--border);
+    border-radius: 5px; background: var(--bg); color: var(--fg); cursor: pointer; font-family: inherit;
+  }
+  .copy-btn:hover { background: var(--hover-bg); }
+  pre {
+    background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px; font-size: 13px; overflow-x: auto; white-space: pre-wrap;
+    word-break: break-word; font-family: "SF Mono", Consolas, monospace; line-height: 1.6;
+  }
+  footer { padding: 20px 0 60px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); }
+  footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); }
+  footer a:hover { color: var(--fg); }
+  .note { font-size: 13px; color: var(--muted); margin-top: 24px; line-height: 1.7; }
+  .note code { background: var(--input-bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+</style>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>Hexo Front-matter 生成器</h1>
+    <p>填标题、日期、分类、标签，生成 Hexo 文章的 YAML 头。</p>
+  </header>
+
+  <main>
+    <label for="title">文章标题</label>
+    <input type="text" id="title" placeholder="我的第一篇文章" autocomplete="off">
+
+    <label for="date">发布日期</label>
+    <input type="datetime-local" id="date">
+
+    <label for="categories">分类（多个用逗号分隔）</label>
+    <input type="text" id="categories" placeholder="建站, 记录" autocomplete="off">
+
+    <label for="tags">标签（多个用逗号分隔）</label>
+    <input type="text" id="tags" placeholder="Hexo, 博客" autocomplete="off">
+
+    <label for="layout">布局（可选，默认 post）</label>
+    <input type="text" id="layout" placeholder="post" autocomplete="off">
+
+    <div class="output">
+      <div class="label-row">
+        <span class="label">生成的 Front-matter</span>
+        <button class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <pre id="output">---
+title: ""
+---</pre>
+    </div>
+
+    <div class="note">
+      把生成内容粘到 <code>source/_posts/xxx.md</code> 文件最开头，正文写在第二条 <code>---</code> 下面。
+    </div>
+  </main>
+
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var titleEl = $('title'), dateEl = $('date'), catEl = $('categories'), tagEl = $('tags'), layoutEl = $('layout');
+  var output = $('output'), copyBtn = $('copyBtn');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function localNow() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function yamlValue(v) {
+    var s = String(v || '').trim();
+    return s ? JSON.stringify(s) : "''";
+  }
+  function splitList(v) {
+    return String(v || '').split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function update() {
+    var lines = ['---'];
+    lines.push('title: ' + yamlValue(titleEl.value));
+
+    var date = dateEl.value.replace('T', ' ');
+    if (date.length === 16) date += ':00';
+    if (date) lines.push('date: ' + date);
+
+    var layout = layoutEl.value.trim();
+    if (layout) lines.push('layout: ' + yamlValue(layout));
+
+    var cats = splitList(catEl.value);
+    var tags = splitList(tagEl.value);
+    if (cats.length) {
+      lines.push('categories:');
+      cats.forEach(function (c) { lines.push('  - ' + yamlValue(c)); });
+    } else {
+      lines.push('categories: []');
+    }
+    if (tags.length) {
+      lines.push('tags:');
+      tags.forEach(function (t) { lines.push('  - ' + yamlValue(t)); });
+    } else {
+      lines.push('tags: []');
+    }
+
+    lines.push('---');
+    output.textContent = lines.join('\n');
+  }
+
+  dateEl.value = localNow();
+  [titleEl, dateEl, catEl, tagEl, layoutEl].forEach(function (el) {
+    el.addEventListener('input', update);
+    el.addEventListener('change', update);
+  });
+  update();
+
+  copyBtn.addEventListener('click', function () {
+    var text = output.textContent;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else fallback();
+  });
+})();
+</script>
+</body>
+</html>

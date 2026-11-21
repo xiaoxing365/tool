@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片转 Base64 - 小兴365</title>
+<meta name="description" content="把本地图片转成 Data URL">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>图片转 Base64</h1>
+    <p>把本地图片转成 Data URL</p>
+  </header>
+  <main>
+    <label for="file">选择图片（不超过 2MB）</label>
+    <input type="file" id="file" accept="image/*">
+    <div class="hint">图片只在你的浏览器中读取，不会上传到服务器。</div>
+    <div class="status" id="status"></div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">图片信息</span>
+        <span class="badge" id="sizeBadge">—</span>
+      </div>
+      <div class="hint" id="fileName">未选择文件</div>
+      <pre id="previewBox"><img id="preview" alt="图片预览" hidden></pre>
+    </div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">Data URL</span>
+        <button type="button" class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <textarea id="dataUrl" rows="8" readonly spellcheck="false" placeholder="选择图片后在这里生成 Data URL…"></textarea>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var fileEl = $('file'), statusEl = $('status');
+  var sizeEl = $('sizeBadge'), nameEl = $('fileName');
+  var previewEl = $('preview'), dataUrlEl = $('dataUrl');
+  var MAX_SIZE = 2 * 1024 * 1024;
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  function resetOutput() {
+    dataUrlEl.value = '';
+    previewEl.hidden = true;
+    previewEl.removeAttribute('src');
+  }
+
+  fileEl.addEventListener('change', function () {
+    statusEl.textContent = '';
+    var file = fileEl.files && fileEl.files[0];
+    if (!file) {
+      sizeEl.textContent = '—';
+      nameEl.textContent = '未选择文件';
+      resetOutput();
+      return;
+    }
+    nameEl.textContent = file.name;
+    sizeEl.textContent = formatSize(file.size);
+
+    if (!/^image\//.test(file.type)) {
+      resetOutput();
+      statusEl.textContent = '请选择图片文件。';
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      resetOutput();
+      statusEl.textContent = '图片超过 2MB 限制（当前 ' + formatSize(file.size) + '），请选择更小的文件。';
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      dataUrlEl.value = e.target.result;
+      previewEl.src = e.target.result;
+      previewEl.hidden = false;
+    };
+    reader.onerror = function () {
+      resetOutput();
+      statusEl.textContent = '读取文件失败，请重试。';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('copyBtn').addEventListener('click', function () {
+    var btn = this;
+    var text = dataUrlEl.value;
+    if (!text) return;
+    function done() {
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

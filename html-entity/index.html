@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML 实体编码解码 - 小兴365</title>
+<meta name="description" content="HTML 特殊字符转义和反转义">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>HTML 实体编码解码</h1>
+    <p>HTML 特殊字符转义和反转义</p>
+  </header>
+  <main>
+    <label for="input">输入文本</label>
+    <textarea id="input" placeholder="把要转义或反转义的文本粘到这里"></textarea>
+    <p class="hint">反转义只按实体表解码，不会解析或执行 HTML，粘进来的标签永远只会是文本。</p>
+
+    <div class="actions">
+      <button type="button" class="primary" id="encodeBtn">转义</button>
+      <button type="button" class="secondary" id="decodeBtn">反转义</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="output">
+      <div class="label-row">
+        <span class="label">输出结果</span>
+        <button type="button" class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <pre id="output"></pre>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var inputEl = $('input'), outputEl = $('output'), statusEl = $('status');
+  var encodeBtn = $('encodeBtn'), decodeBtn = $('decodeBtn'), copyBtn = $('copyBtn');
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, function (ch) {
+      switch (ch) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '"': return '&quot;';
+        case "'": return '&#39;';
+      }
+    });
+  }
+
+  // 常见命名实体。只做查表替换，绝不把输入丢给 innerHTML 解析。
+  var NAMED_ENTITIES = {
+    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00a0',
+    copy: '\u00a9', reg: '\u00ae', trade: '\u2122', deg: '\u00b0',
+    plusmn: '\u00b1', times: '\u00d7', divide: '\u00f7', frac12: '\u00bd',
+    frac14: '\u00bc', frac34: '\u00be', sup2: '\u00b2', sup3: '\u00b3',
+    micro: '\u00b5', para: '\u00b6', sect: '\u00a7', middot: '\u00b7',
+    bull: '\u2022', hellip: '\u2026', mdash: '\u2014', ndash: '\u2013',
+    lsquo: '\u2018', rsquo: '\u2019', ldquo: '\u201c', rdquo: '\u201d',
+    laquo: '\u00ab', raquo: '\u00bb', lsaquo: '\u2039', rsaquo: '\u203a',
+    larr: '\u2190', uarr: '\u2191', rarr: '\u2192', darr: '\u2193', harr: '\u2194',
+    ne: '\u2260', le: '\u2264', ge: '\u2265', asymp: '\u2248', infin: '\u221e',
+    sum: '\u2211', radic: '\u221a', prime: '\u2032', dagger: '\u2020',
+    cent: '\u00a2', pound: '\u00a3', yen: '\u00a5', euro: '\u20ac', curren: '\u00a4',
+    ensp: '\u2002', emsp: '\u2003', thinsp: '\u2009', zwnj: '\u200c', zwj: '\u200d',
+    shy: '\u00ad', acute: '\u00b4', uml: '\u00a8', cedil: '\u00b8', macr: '\u00af'
+  };
+
+  function unescapeHtml(text) {
+    return text.replace(/&(#[xX][0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]{1,31});/g, function (whole, body) {
+      if (body.charAt(0) === '#') {
+        var isHex = body.charAt(1) === 'x' || body.charAt(1) === 'X';
+        var code = isHex ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
+        if (!isFinite(code) || code <= 0 || code > 0x10ffff) return whole;
+        if (code >= 0xd800 && code <= 0xdfff) return whole;
+        try {
+          return String.fromCodePoint(code);
+        } catch (e) {
+          return whole;
+        }
+      }
+      var value = NAMED_ENTITIES[body];
+      if (value === undefined) value = NAMED_ENTITIES[body.toLowerCase()];
+      return value === undefined ? whole : value;
+    });
+  }
+
+  function run(encode) {
+    var text = inputEl.value;
+    statusEl.textContent = '';
+    outputEl.textContent = '';
+    if (!text) return;
+    try {
+      outputEl.textContent = encode ? escapeHtml(text) : unescapeHtml(text);
+    } catch (e) {
+      outputEl.textContent = '';
+      statusEl.textContent = (encode ? '转义失败：' : '反转义失败：') + (e.message || '请检查输入内容');
+    }
+  }
+
+  encodeBtn.addEventListener('click', function () { run(true); });
+  decodeBtn.addEventListener('click', function () { run(false); });
+
+  copyBtn.addEventListener('click', function () {
+    var text = outputEl.textContent;
+    if (!text) return;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

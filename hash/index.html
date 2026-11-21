@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>哈希计算 - 小兴365</title>
+<meta name="description" content="计算文本的 SHA-1 / SHA-256 / SHA-512 摘要">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>哈希计算</h1>
+    <p>计算文本的 SHA-1 / SHA-256 / SHA-512 摘要</p>
+  </header>
+  <main>
+    <label for="input">输入文本</label>
+    <textarea id="input" placeholder="把要计算摘要的文本粘到这里"></textarea>
+
+    <div class="grid-2">
+      <div>
+        <label for="algo">算法</label>
+        <select id="algo">
+          <option value="SHA-1">SHA-1</option>
+          <option value="SHA-256" selected>SHA-256</option>
+          <option value="SHA-512">SHA-512</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="primary" id="calcBtn">计算</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="output">
+      <div class="label-row">
+        <span class="label">摘要结果（十六进制）</span>
+        <button type="button" class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <pre id="output"></pre>
+    </div>
+    <p class="note">摘要在浏览器本地计算，文本不会上传。crypto.subtle 需要 HTTPS 或 localhost 环境。</p>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var inputEl = $('input'), algoEl = $('algo'), calcBtn = $('calcBtn');
+  var statusEl = $('status'), outputEl = $('output'), copyBtn = $('copyBtn');
+
+  function toHex(buffer) {
+    var bytes = new Uint8Array(buffer);
+    var hex = '';
+    for (var i = 0; i < bytes.length; i++) {
+      hex += ('0' + bytes[i].toString(16)).slice(-2);
+    }
+    return hex;
+  }
+
+  function calculate() {
+    statusEl.textContent = '';
+    outputEl.textContent = '';
+    if (!window.crypto || !crypto.subtle || typeof crypto.subtle.digest !== 'function') {
+      statusEl.textContent = '当前环境不支持 crypto.subtle，请通过 HTTPS 或 localhost 访问本页。';
+      return;
+    }
+    var text = inputEl.value;
+    var data = new TextEncoder().encode(text);
+    crypto.subtle.digest(algoEl.value, data).then(function (buffer) {
+      outputEl.textContent = toHex(buffer);
+    }).catch(function (e) {
+      statusEl.textContent = '计算失败：' + (e && e.message ? e.message : '未知错误');
+    });
+  }
+
+  calcBtn.addEventListener('click', calculate);
+
+  copyBtn.addEventListener('click', function () {
+    var text = outputEl.textContent;
+    if (!text) return;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

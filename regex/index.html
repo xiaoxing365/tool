@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>正则表达式测试 - 小兴365</title>
+<meta name="description" content="输入模式和测试文本，查看匹配结果">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>正则表达式测试</h1>
+    <p>输入模式和测试文本，查看匹配结果</p>
+  </header>
+  <main>
+    <label for="pattern">模式（pattern）</label>
+    <input type="text" id="pattern" placeholder="例如：(\w+)@(\w+\.com)" spellcheck="false" autocomplete="off">
+
+    <label for="flags">标志（flags）</label>
+    <input type="text" id="flags" placeholder="如 gi，留空也可以" spellcheck="false" autocomplete="off">
+    <div class="hint">常用标志：g 全局、i 忽略大小写、m 多行、s 点匹配换行、u Unicode。匹配在后台线程运行，超过 800ms 会自动中止，页面不会卡死。</div>
+
+    <label for="text">测试文本</label>
+    <textarea id="text" rows="8" placeholder="在这里粘贴要测试的文本…" spellcheck="false"></textarea>
+
+    <div class="status" id="status"></div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">匹配结果</span>
+        <span class="badge" id="matchCount">0 个匹配</span>
+      </div>
+      <pre id="results">输入模式后自动显示匹配结果…</pre>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var patternEl = $('pattern'), flagsEl = $('flags'), textEl = $('text');
+  var statusEl = $('status'), resultsEl = $('results'), countEl = $('matchCount');
+
+  var MAX_MATCHES = 1000;
+  var MAX_TEXT = 200000;
+  var TIMEOUT_MS = 800;
+  var DEBOUNCE_MS = 180;
+
+  var worker = null;
+  var workerBroken = false;
+  var seq = 0;
+  var killTimer = null;
+  var debounceTimer = null;
+  var pendingNote = '';
+
+  function describe(item, index) {
+    var lines = [];
+    lines.push('匹配 ' + (index + 1) + '  [索引 ' + item.index + '–' + (item.index + item.full.length) + ']');
+    lines.push('  完整匹配: ' + JSON.stringify(item.full));
+    var groups = item.groups || [];
+    for (var j = 0; j < groups.length; j++) {
+      lines.push('  捕获组 ' + (j + 1) + ': ' + (groups[j] === null ? '(未匹配)' : JSON.stringify(groups[j])));
+    }
+    if (item.named) {
+      Object.keys(item.named).forEach(function (name) {
+        lines.push('  命名组 ' + name + ': ' + (item.named[name] === null ? '(未匹配)' : JSON.stringify(item.named[name])));
+      });
+    }
+    return lines.join('\n');
+  }
+
+  // 没有 Worker（例如直接用 file:// 打开）时的同步兜底，逻辑与 worker.js 保持一致。
+  function computeHere(pattern, flags, text) {
+    var out = { ok: true, matches: [], truncated: false, error: '' };
+    var re;
+    try {
+      re = new RegExp(pattern, flags);
+    } catch (e) {
+      out.ok = false;
+      out.error = e.message || String(e);
+      return out;
+    }
+    var m;
+    while ((m = re.exec(text)) !== null) {
+      var groups = [];
+      for (var j = 1; j < m.length; j++) groups.push(m[j] === undefined ? null : m[j]);
+      var named = null;
+      if (m.groups) {
+        named = {};
+        Object.keys(m.groups).forEach(function (k) {
+          named[k] = m.groups[k] === undefined ? null : m.groups[k];
+        });
+      }
+      out.matches.push({ index: m.index, full: m[0], groups: groups, named: named });
+      if (out.matches.length >= MAX_MATCHES) { out.truncated = true; break; }
+      if (m[0].length === 0) {
+        if (re.lastIndex >= text.length) break;
+        re.lastIndex += 1;
+      }
+      if (!re.global && !re.sticky) break;
+    }
+    return out;
+  }
+
+  function applyResult(data) {
+    if (!data.ok) {
+      countEl.textContent = '0 个匹配';
+      resultsEl.textContent = '';
+      statusEl.textContent = '正则表达式无效：' + (data.error || '请检查模式或标志');
+      return;
+    }
+    var matches = data.matches || [];
+    countEl.textContent = matches.length + ' 个匹配' + (data.truncated ? '（已截断）' : '');
+    if (data.truncated) {
+      statusEl.textContent = '匹配数量过多，仅显示前 ' + MAX_MATCHES + ' 个结果。';
+    }
+    if (pendingNote) {
+      statusEl.textContent = (statusEl.textContent ? statusEl.textContent + ' ' : '') + pendingNote;
+    }
+    resultsEl.textContent = matches.length
+      ? matches.map(describe).join('\n\n')
+      : '没有匹配结果';
+  }
+
+  function killWorker() {
+    if (worker) {
+      worker.terminate();
+      worker = null;
+    }
+    clearTimeout(killTimer);
+  }
+
+  function getWorker() {
+    if (workerBroken) return null;
+    if (worker) return worker;
+    if (typeof Worker === 'undefined') {
+      workerBroken = true;
+      return null;
+    }
+    try {
+      worker = new Worker('worker.js');
+    } catch (e) {
+      workerBroken = true;
+      return null;
+    }
+    worker.onmessage = function (ev) {
+      clearTimeout(killTimer);
+      var data = ev.data || {};
+      if (data.id !== seq) return;
+      applyResult(data);
+    };
+    worker.onerror = function () {
+      workerBroken = true;
+      killWorker();
+      render();
+      statusEl.textContent = '后台线程不可用，已改为在当前页面计算（复杂正则可能让页面短暂无响应）。' +
+        (statusEl.textContent ? ' ' + statusEl.textContent : '');
+    };
+    return worker;
+  }
+
+  function render() {
+    clearTimeout(debounceTimer);
+    statusEl.textContent = '';
+    pendingNote = '';
+
+    var pattern = patternEl.value;
+    var text = textEl.value;
+    var flags = flagsEl.value;
+
+    if (!pattern) {
+      countEl.textContent = '0 个匹配';
+      resultsEl.textContent = '输入模式后自动显示匹配结果…';
+      return;
+    }
+
+    try {
+      new RegExp(pattern, flags);
+    } catch (e) {
+      countEl.textContent = '0 个匹配';
+      resultsEl.textContent = '';
+      statusEl.textContent = '正则表达式无效：' + (e.message || '请检查模式或标志');
+      return;
+    }
+
+    var note = '';
+    if (text.length > MAX_TEXT) {
+      text = text.slice(0, MAX_TEXT);
+      note = '文本超过 ' + MAX_TEXT + ' 个字符，只匹配了前 ' + MAX_TEXT + ' 个。';
+    }
+
+    var id = ++seq;
+    var w = getWorker();
+
+    if (!w) {
+      pendingNote = note;
+      applyResult(computeHere(pattern, flags, text));
+      return;
+    }
+
+    countEl.textContent = '匹配中…';
+    resultsEl.textContent = '';
+    if (note) pendingNote = note;
+
+    killTimer = setTimeout(function () {
+      killWorker();
+      if (id !== seq) return;
+      countEl.textContent = '已中止';
+      resultsEl.textContent = '';
+      statusEl.textContent = '这个正则回溯爆炸了：跑了 ' + TIMEOUT_MS + 'ms 还没结束，已强制中止。换个写法，或者缩短测试文本。';
+    }, TIMEOUT_MS);
+
+    w.postMessage({ id: id, pattern: pattern, flags: flags, text: text });
+  }
+
+  function schedule() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(render, DEBOUNCE_MS);
+  }
+
+  [patternEl, flagsEl, textEl].forEach(function (el) {
+    el.addEventListener('input', schedule);
+  });
+  render();
+})();
+</script>
+</body>
+</html>

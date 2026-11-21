@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间戳转换器 - 小兴365</title>
+<meta name="description" content="Unix 时间戳和本地时间互转">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>时间戳转换器</h1>
+    <p>Unix 时间戳和本地时间互转</p>
+  </header>
+  <main>
+    <label for="dtInput">本地时间</label>
+    <input type="datetime-local" id="dtInput">
+    <div class="actions">
+      <button type="button" class="primary" id="toTsBtn">时间 → 时间戳</button>
+    </div>
+
+    <label for="tsInput">Unix 时间戳</label>
+    <input type="text" id="tsInput" placeholder="支持 10 位秒级或 13 位毫秒级时间戳">
+    <div class="actions">
+      <button type="button" class="primary" id="toTimeBtn">时间戳 → 时间</button>
+      <button type="button" class="secondary" id="nowBtn">填入当前时间</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="output">
+      <div class="label-row">
+        <span class="label">结果</span>
+        <button type="button" class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <pre id="output"></pre>
+    </div>
+    <p class="hint">时间戳按本地时区显示；10 位按秒处理，13 位按毫秒处理。</p>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var dtInput = $('dtInput'), tsInput = $('tsInput');
+  var toTsBtn = $('toTsBtn'), toTimeBtn = $('toTimeBtn'), nowBtn = $('nowBtn');
+  var statusEl = $('status'), outputEl = $('output'), copyBtn = $('copyBtn');
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function localInputValue(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+
+  function show(ms) {
+    var d = new Date(ms);
+    var sec = Math.floor(ms / 1000);
+    outputEl.textContent =
+      '秒级时间戳：' + sec + '\n' +
+      '毫秒级时间戳：' + ms + '\n' +
+      '本地时间：' + d.toLocaleString('zh-CN', { hour12: false });
+  }
+
+  toTsBtn.addEventListener('click', function () {
+    statusEl.textContent = '';
+    outputEl.textContent = '';
+    var raw = dtInput.value;
+    if (!raw) { statusEl.textContent = '请先选择本地时间'; return; }
+    var d = new Date(raw);
+    var ms = d.getTime();
+    if (isNaN(ms)) { statusEl.textContent = '时间格式无效'; return; }
+    show(ms);
+  });
+
+  toTimeBtn.addEventListener('click', function () {
+    statusEl.textContent = '';
+    outputEl.textContent = '';
+    var raw = tsInput.value.trim();
+    if (!/^-?\d+$/.test(raw)) { statusEl.textContent = '请输入 10 位（秒）或 13 位（毫秒）纯数字时间戳'; return; }
+    var num = Number(raw);
+    if (!isFinite(num)) { statusEl.textContent = '时间戳数值过大'; return; }
+    var digits = String(Math.abs(Math.trunc(num))).length;
+    var ms = digits <= 10 ? num * 1000 : num;
+    if (isNaN(new Date(ms).getTime())) { statusEl.textContent = '时间戳超出有效范围'; return; }
+    show(ms);
+  });
+
+  nowBtn.addEventListener('click', function () {
+    statusEl.textContent = '';
+    dtInput.value = localInputValue(new Date());
+  });
+
+  copyBtn.addEventListener('click', function () {
+    var text = outputEl.textContent;
+    if (!text) return;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

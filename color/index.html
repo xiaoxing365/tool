@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颜色转换器 - 小兴365</title>
+<meta name="description" content="HEX / RGB / HSL 互转并预览">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>颜色转换器</h1>
+    <p>HEX / RGB / HSL 互转并预览</p>
+  </header>
+  <main>
+    <label for="picker">取色器</label>
+    <input type="color" id="picker" value="#4f46e5">
+
+    <label for="hex">HEX</label>
+    <input type="text" id="hex" value="#4f46e5" placeholder="#4f46e5" spellcheck="false" autocomplete="off">
+
+    <div class="row">
+      <div>
+        <label for="r">R（0–255）</label>
+        <input type="number" id="r" min="0" max="255" step="1" value="79">
+      </div>
+      <div>
+        <label for="g">G（0–255）</label>
+        <input type="number" id="g" min="0" max="255" step="1" value="70">
+      </div>
+      <div>
+        <label for="b">B（0–255）</label>
+        <input type="number" id="b" min="0" max="255" step="1" value="229">
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">HSL</span>
+        <span class="badge" id="hsl">hsl(0, 0%, 0%)</span>
+      </div>
+      <div id="preview" style="background:#4f46e5;height:96px;border-radius:9px;border:1px solid var(--border)"></div>
+    </div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">CSS 片段</span>
+        <button type="button" class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <pre id="cssOut">等待输入…</pre>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var pickerEl = $('picker'), hexEl = $('hex');
+  var rEl = $('r'), gEl = $('g'), bEl = $('b');
+  var statusEl = $('status'), hslEl = $('hsl'), previewEl = $('preview'), cssOutEl = $('cssOut');
+
+  function hexToRgb(hex) {
+    var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
+    if (!m) return null;
+    var h = m[1];
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    return {
+      r: parseInt(h.slice(0, 2), 16),
+      g: parseInt(h.slice(2, 4), 16),
+      b: parseInt(h.slice(4, 6), 16)
+    };
+  }
+
+  function rgbToHex(rgb) {
+    return '#' + [rgb.r, rgb.g, rgb.b].map(function (v) {
+      var s = Math.round(v).toString(16);
+      return s.length === 1 ? '0' + s : s;
+    }).join('');
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    var h = 0, s = 0, l = (max + min) / 2;
+    if (d !== 0) {
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h /= 6;
+    }
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100)
+    };
+  }
+
+  function render(rgb, source, message) {
+    statusEl.textContent = message || '';
+    var hex = rgbToHex(rgb);
+    if (source !== 'picker') pickerEl.value = hex;
+    if (source !== 'hex') hexEl.value = hex;
+    if (source !== 'rgb') {
+      rEl.value = rgb.r;
+      gEl.value = rgb.g;
+      bEl.value = rgb.b;
+    }
+    var hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    var hslText = 'hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)';
+    hslEl.textContent = hslText;
+    previewEl.style.background = hex;
+    cssOutEl.textContent = 'background: ' + hex + ';\n' +
+      'background: rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ');\n' +
+      'background: ' + hslText + ';';
+  }
+
+  function showInvalid(message) {
+    statusEl.textContent = message;
+    hslEl.textContent = '—';
+    cssOutEl.textContent = '无效的颜色值，未生成 CSS。';
+    previewEl.style.background = 'transparent';
+  }
+
+  function readRgbInputs() {
+    var values = [rEl.value, gEl.value, bEl.value];
+    for (var i = 0; i < values.length; i++) {
+      if (String(values[i]).trim() === '' || !isFinite(Number(values[i]))) {
+        return { error: 'R / G / B 需为 0–255 的数字。' };
+      }
+    }
+    var rgb = {
+      r: Number(values[0]),
+      g: Number(values[1]),
+      b: Number(values[2])
+    };
+    var outOfRange = [rgb.r, rgb.g, rgb.b].some(function (v) { return v < 0 || v > 255; });
+    rgb.r = Math.min(255, Math.max(0, Math.round(rgb.r)));
+    rgb.g = Math.min(255, Math.max(0, Math.round(rgb.g)));
+    rgb.b = Math.min(255, Math.max(0, Math.round(rgb.b)));
+    return { rgb: rgb, message: outOfRange ? 'RGB 值已限制在 0–255。' : '' };
+  }
+
+  pickerEl.addEventListener('input', function () {
+    var rgb = hexToRgb(pickerEl.value);
+    if (rgb) render(rgb, 'picker');
+  });
+
+  hexEl.addEventListener('input', function () {
+    var rgb = hexToRgb(hexEl.value);
+    if (rgb) render(rgb, 'hex');
+    else showInvalid('HEX 格式无效，请输入 #RGB 或 #RRGGBB。');
+  });
+
+  [rEl, gEl, bEl].forEach(function (el) {
+    el.addEventListener('input', function () {
+      var result = readRgbInputs();
+      if (result.error) {
+        showInvalid(result.error);
+        return;
+      }
+      render(result.rgb, result.message ? 'clamp' : 'rgb', result.message);
+    });
+  });
+
+  $('copyBtn').addEventListener('click', function () {
+    var btn = this;
+    var text = cssOutEl.textContent;
+    if (!text || text === '等待输入…') return;
+    function done() {
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  render({ r: 79, g: 70, b: 229 }, 'init');
+})();
+</script>
+</body>
+</html>

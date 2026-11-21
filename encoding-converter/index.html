@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本编码转换器 - 小兴365</title>
+<meta name="description" content="UTF-8 和 GBK 互转，中文乱码的时候用得上。">
+<style>
+  :root {
+    --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
+    --accent: #2563eb; --hover-bg: #f9fafb; --input-bg: #fafafa; --error: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111; --fg: #e5e5e5; --muted: #8a8a8a; --border: #262626;
+      --accent: #60a5fa; --hover-bg: #1a1a1a; --input-bg: #1a1a1a; --error: #f87171;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.6;
+    font-size: 15px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 40px 0 28px; border-bottom: 1px solid var(--border); }
+  header a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  header a:hover { color: var(--fg); }
+  header h1 { font-size: 20px; font-weight: 600; margin-top: 14px; letter-spacing: -0.3px; }
+  header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  main { padding: 28px 0 40px; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; margin-top: 18px; }
+  label:first-child { margin-top: 0; }
+  select, textarea {
+    width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit;
+    background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--fg); outline: none;
+  }
+  select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  button {
+    font-family: inherit; font-size: 13px; border-radius: 6px; padding: 8px 14px; cursor: pointer;
+  }
+  .primary { background: var(--fg); color: var(--bg); border: 1px solid var(--fg); }
+  .primary:hover { opacity: 0.85; }
+  .secondary { background: var(--bg); color: var(--fg); border: 1px solid var(--border); }
+  .secondary:hover { background: var(--hover-bg); }
+  .status { font-size: 12.5px; color: var(--error); min-height: 18px; margin-top: 8px; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 24px; line-height: 1.75; }
+  .note code { background: var(--input-bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  footer { padding: 20px 0 60px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); }
+  footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); }
+  footer a:hover { color: var(--fg); }
+</style>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>文本编码转换器</h1>
+    <p>UTF-8 和 GBK 互转，中文乱码的时候用得上。</p>
+  </header>
+
+  <main>
+    <label for="mode">转换方向</label>
+    <select id="mode">
+      <option value="utf8-gbk">正常 UTF-8 → 乱码（按 GBK 解读 UTF-8 字节）</option>
+      <option value="gbk-utf8">乱码 → 正常 UTF-8（上一种的逆向）</option>
+      <option value="utf8-latin1">正常 UTF-8 → 字节乱码（GBK 字节按 Latin-1 显示）</option>
+      <option value="latin1-utf8">字节乱码 → 正常 UTF-8（上一种的逆向）</option>
+    </select>
+
+    <label for="input">输入文本</label>
+    <textarea id="input" placeholder="把要转换的文字粘到这里"></textarea>
+
+    <div class="actions">
+      <button type="button" class="primary" id="convertBtn">转换</button>
+      <button type="button" class="secondary" id="copyBtn">复制结果</button>
+      <button type="button" class="secondary" id="clearBtn">清空</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <label for="output">转换结果</label>
+    <textarea id="output" readonly placeholder="结果会显示在这里"></textarea>
+
+    <div class="note">
+      常见的两种乱码：<code>浣犲ソ</code> 是 UTF-8 字节被按 GBK 解读，用第 2 个方向还原；
+      <code>ÄãºÃ</code> 是 GBK 字节被按 Latin-1 显示，用第 4 个方向还原。<br>
+      GBK 解码由浏览器内置编码支持完成，建议使用较新的 Edge / Chrome。
+    </div>
+  </main>
+
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var modeEl = $('mode'), inputEl = $('input'), outputEl = $('output');
+  var statusEl = $('status'), convertBtn = $('convertBtn'), copyBtn = $('copyBtn'), clearBtn = $('clearBtn');
+
+  var gbkMap = null;
+  var encoderSupported = true;
+  try {
+    new TextDecoder('gbk');
+  } catch (e) {
+    encoderSupported = false;
+  }
+
+  function buildGbkMap() {
+    if (gbkMap) return gbkMap;
+    gbkMap = new Map();
+    var decoder = new TextDecoder('gbk');
+    var pair = new Uint8Array(2);
+    var i, b1, b2, s;
+    for (b1 = 0x81; b1 <= 0xfe; b1++) {
+      for (b2 = 0x40; b2 <= 0xfe; b2++) {
+        if (b2 === 0x7f) continue;
+        pair[0] = b1; pair[1] = b2;
+        s = decoder.decode(pair);
+        if (s && s.length === 1 && s !== '\ufffd' && !gbkMap.has(s)) gbkMap.set(s, [b1, b2]);
+      }
+    }
+    for (i = 0x20; i <= 0x7e; i++) {
+      s = decoder.decode(new Uint8Array([i]));
+      if (s && s.length === 1 && !gbkMap.has(s)) gbkMap.set(s, [i]);
+    }
+    return gbkMap;
+  }
+
+  function encodeGbk(text) {
+    var map = buildGbkMap();
+    var bytes = [];
+    for (var i = 0; i < text.length; i++) {
+      var ch = text.charAt(i);
+      if (map.has(ch)) {
+        var pair = map.get(ch);
+        bytes.push(pair[0]);
+        if (pair.length > 1) bytes.push(pair[1]);
+      } else {
+        bytes.push(0x3f);
+      }
+    }
+    return new Uint8Array(bytes);
+  }
+
+  function latin1FromBytes(bytes) {
+    var out = '';
+    for (var i = 0; i < bytes.length; i++) out += String.fromCharCode(bytes[i]);
+    return out;
+  }
+
+  function bytesFromLatin1(text) {
+    var bytes = new Uint8Array(text.length);
+    for (var i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i) & 0xff;
+    return bytes;
+  }
+
+  function convert(text, mode) {
+    if (!encoderSupported) throw new Error('当前浏览器不支持 GBK 解码，请换用 Edge 或 Chrome。');
+    switch (mode) {
+      case 'utf8-gbk':
+        return new TextDecoder('gbk').decode(new TextEncoder().encode(text));
+      case 'gbk-utf8':
+        return new TextDecoder('utf-8').decode(encodeGbk(text));
+      case 'utf8-latin1':
+        return latin1FromBytes(encodeGbk(text));
+      case 'latin1-utf8':
+        return new TextDecoder('gbk').decode(bytesFromLatin1(text));
+      default:
+        return text;
+    }
+  }
+
+  function run() {
+    var text = inputEl.value;
+    statusEl.textContent = '';
+    if (!text) {
+      outputEl.value = '';
+      return;
+    }
+    try {
+      outputEl.value = convert(text, modeEl.value);
+    } catch (e) {
+      outputEl.value = '';
+      statusEl.textContent = e.message || '转换失败';
+    }
+  }
+
+  convertBtn.addEventListener('click', run);
+  inputEl.addEventListener('input', run);
+  modeEl.addEventListener('change', run);
+
+  clearBtn.addEventListener('click', function () {
+    inputEl.value = '';
+    outputEl.value = '';
+    statusEl.textContent = '';
+    inputEl.focus();
+  });
+
+  copyBtn.addEventListener('click', function () {
+    var text = outputEl.value;
+    if (!text) return;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制结果'; }, 1500);
+    }
+    function fallback() {
+      outputEl.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else fallback();
+  });
+})();
+</script>
+</body>
+</html>

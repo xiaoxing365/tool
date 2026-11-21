@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本统计 - 小兴365</title>
+<meta name="description" content="统计字数、行数、字节数等信息">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>文本统计</h1>
+    <p>统计字数、行数、字节数等信息</p>
+  </header>
+  <main>
+    <label for="input">输入文本</label>
+    <textarea id="input" placeholder="把要统计的文本粘到这里，结果会实时更新"></textarea>
+    <div class="hint">输入内容后，下方的统计结果会自动更新。</div>
+
+    <div class="output">
+      <div class="section-label">统计结果</div>
+      <div class="grid-2" id="stats">
+        <div><span class="sub-label">字符数（含空格）</span> <span class="badge" id="s-chars">0</span></div>
+        <div><span class="sub-label">字符数（不含空格）</span> <span class="badge" id="s-charsNoSpace">0</span></div>
+        <div><span class="sub-label">中文字符</span> <span class="badge" id="s-chinese">0</span></div>
+        <div><span class="sub-label">英文单词</span> <span class="badge" id="s-words">0</span></div>
+        <div><span class="sub-label">数字个数</span> <span class="badge" id="s-digits">0</span></div>
+        <div><span class="sub-label">行数</span> <span class="badge" id="s-lines">0</span></div>
+        <div><span class="sub-label">段落数</span> <span class="badge" id="s-paragraphs">0</span></div>
+        <div><span class="sub-label">UTF-8 字节数</span> <span class="badge" id="s-bytes">0</span></div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var inputEl = $('input');
+  var out = {
+    chars: $('s-chars'),
+    charsNoSpace: $('s-charsNoSpace'),
+    chinese: $('s-chinese'),
+    words: $('s-words'),
+    digits: $('s-digits'),
+    lines: $('s-lines'),
+    paragraphs: $('s-paragraphs'),
+    bytes: $('s-bytes')
+  };
+  var encoder = new TextEncoder();
+
+  function count(regex, text) {
+    var m = text.match(regex);
+    return m ? m.length : 0;
+  }
+
+  function set(idEl, value) {
+    idEl.textContent = String(value);
+  }
+
+  function render() {
+    var text = inputEl.value;
+    var trimmed = text.trim();
+
+    set(out.chars, Array.from(text).length);
+    set(out.charsNoSpace, Array.from(text.replace(/\s/g, '')).length);
+    set(out.chinese, count(/[\u4e00-\u9fa5]/g, text));
+    set(out.words, count(/[A-Za-z]+/g, text));
+    set(out.digits, count(/\d/g, text));
+    set(out.lines, text ? text.split(/\r\n|\r|\n/).length : 0);
+    set(out.paragraphs, trimmed ? trimmed.split(/\n\s*\n/).length : 0);
+    set(out.bytes, encoder.encode(text).length);
+  }
+
+  inputEl.addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

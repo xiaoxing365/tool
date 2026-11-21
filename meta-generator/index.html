@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta 标签生成器 - 小兴365</title>
+<meta name="description" content="生成 title、description、keywords，还有 Open Graph 和 Twitter Card。">
+<style>
+  :root {
+    --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
+    --accent: #2563eb; --hover-bg: #f9fafb; --input-bg: #fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111; --fg: #e5e5e5; --muted: #8a8a8a; --border: #262626;
+      --accent: #60a5fa; --hover-bg: #1a1a1a; --input-bg: #1a1a1a;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.6;
+    font-size: 15px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 40px 0 28px; border-bottom: 1px solid var(--border); }
+  header a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  header a:hover { color: var(--fg); }
+  header h1 { font-size: 20px; font-weight: 600; margin-top: 14px; letter-spacing: -0.3px; }
+  header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  main { padding: 28px 0 40px; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; margin-top: 18px; }
+  label:first-child { margin-top: 0; }
+  input[type="text"] {
+    width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit;
+    background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--fg); outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  .output { margin-top: 28px; }
+  .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .label-row span.label { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .copy-btn {
+    font-size: 12px; padding: 3px 10px; border: 1px solid var(--border);
+    border-radius: 5px; background: var(--bg); color: var(--fg); cursor: pointer; font-family: inherit;
+  }
+  .copy-btn:hover { background: var(--hover-bg); }
+  pre {
+    background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px; font-size: 13px; overflow-x: auto; white-space: pre-wrap;
+    word-break: break-word; font-family: "SF Mono", Consolas, monospace; line-height: 1.6;
+  }
+  footer { padding: 20px 0 60px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); }
+  footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); }
+  footer a:hover { color: var(--fg); }
+  .note { font-size: 13px; color: var(--muted); margin-top: 24px; line-height: 1.7; }
+</style>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>Meta 标签生成器</h1>
+    <p>生成 title、description、keywords，还有 Open Graph 和 Twitter Card。</p>
+  </header>
+
+  <main>
+    <label for="title">页面标题</label>
+    <input type="text" id="title" placeholder="小兴365 工具站" autocomplete="off">
+
+    <label for="description">页面描述</label>
+    <input type="text" id="description" placeholder="一句话说明这个页面是干什么的" autocomplete="off">
+
+    <label for="keywords">关键词（逗号分隔）</label>
+    <input type="text" id="keywords" placeholder="在线工具,建站,Hexo" autocomplete="off">
+
+    <label for="siteName">站点名称（可选，og:site_name）</label>
+    <input type="text" id="siteName" placeholder="小兴365" autocomplete="off">
+
+    <label for="url">页面完整地址（可选，og:url）</label>
+    <input type="text" id="url" placeholder="https://xiaoxing365.top/" autocomplete="off">
+
+    <label for="image">分享封面图地址（可选）</label>
+    <input type="text" id="image" placeholder="https://xiaoxing365.top/cover.png" autocomplete="off">
+
+    <div class="output">
+      <div class="label-row">
+        <span class="label">生成的 meta 标签</span>
+        <button class="copy-btn" id="copyBtn">复制</button>
+      </div>
+      <pre id="output">等待输入…</pre>
+    </div>
+
+    <div class="note">
+      把生成内容粘到页面 <code>&lt;head&gt;</code> 里。留空的字段不会输出对应标签。
+    </div>
+  </main>
+
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var ids = ['title', 'description', 'keywords', 'siteName', 'url', 'image'];
+  var output = $('output'), copyBtn = $('copyBtn');
+
+  function esc(v) {
+    return String(v || '').trim()
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function meta(name, value) { return '<meta name="' + name + '" content="' + esc(value) + '">'; }
+  function og(property, value) { return '<meta property="' + property + '" content="' + esc(value) + '">'; }
+
+  function update() {
+    var v = {};
+    ids.forEach(function (id) { v[id] = $(id).value.trim(); });
+    if (!v.title && !v.description && !v.keywords) {
+      output.textContent = '等待输入…';
+      return;
+    }
+
+    var lines = [];
+    if (v.title) lines.push('<title>' + esc(v.title) + '</title>');
+    if (v.description) lines.push(meta('description', v.description));
+    if (v.keywords) lines.push(meta('keywords', v.keywords));
+
+    if (v.title || v.description || v.url || v.image || v.siteName) {
+      lines.push('');
+      lines.push('<!-- Open Graph -->');
+      lines.push(og('og:type', 'website'));
+      if (v.title) lines.push(og('og:title', v.title));
+      if (v.description) lines.push(og('og:description', v.description));
+      if (v.siteName) lines.push(og('og:site_name', v.siteName));
+      if (v.url) lines.push(og('og:url', v.url));
+      if (v.image) lines.push(og('og:image', v.image));
+
+      lines.push('');
+      lines.push('<!-- Twitter Card -->');
+      lines.push(meta('twitter:card', v.image ? 'summary_large_image' : 'summary'));
+      if (v.title) lines.push(meta('twitter:title', v.title));
+      if (v.description) lines.push(meta('twitter:description', v.description));
+      if (v.image) lines.push(meta('twitter:image', v.image));
+    }
+
+    output.textContent = lines.join('\n');
+  }
+
+  ids.forEach(function (id) { $(id).addEventListener('input', update); });
+  update();
+
+  copyBtn.addEventListener('click', function () {
+    var text = output.textContent;
+    if (text === '等待输入…') return;
+    function done() {
+      copyBtn.textContent = '已复制';
+      setTimeout(function () { copyBtn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else fallback();
+  });
+})();
+</script>
+</body>
+</html>

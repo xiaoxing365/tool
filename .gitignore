@@ -1,0 +1,28 @@
+# WorkBuddy 本地数据，不属于站点内容
+.workbuddy/
+
+# 编辑器 / 系统生成
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.code-workspace
+
+# 依赖与构建产物（本站点当前不用，但以后本地构建时可忽略）
+node_modules/
+dist/
+build/
+
+# 日志、备份、临时文件
+*.log
+*.tmp
+*.temp
+*.bak
+
+# 本地环境变量 / 密钥
+.env
+.env.*

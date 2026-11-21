@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>哪煮米比价工具 - 小兴365</title>
+<meta name="description" content="查询域名后缀在各注册商的注册、续费、转入价格。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #f5f6f8;
+    color: #1f2937;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; width: 100%; }
+  .back-link { display: inline-block; margin-bottom: 10px; color: #6b7280; font-size: 13px; text-decoration: none; }
+  .back-link:hover { color: #111827; }
+  header { background: #fff; border-radius: 14px; padding: 22px 20px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; color: #111827; }
+  header .subtitle { font-size: 13px; color: #6b7280; margin-top: 4px; }
+  .search-box { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .search-box input {
+    flex: 1 1 220px; min-width: 0; padding: 10px 14px; border: 1.5px solid #d1d5db; border-radius: 8px;
+    font-size: 15px; outline: none; transition: border-color .2s; background: #fafafa;
+  }
+  .search-box input:focus { border-color: #2563eb; background: #fff; }
+  .search-box button {
+    padding: 10px 24px; border: none; border-radius: 8px; background: #2563eb; color: #fff;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: background .2s; white-space: nowrap;
+  }
+  .search-box button:hover { background: #1d4ed8; }
+  .search-box button:disabled { background: #93c5fd; cursor: not-allowed; }
+  .input-hint { font-size: 12px; color: #ef4444; margin-top: 6px; min-height: 18px; }
+  section { margin-bottom: 20px; }
+  h2 { font-size: 17px; font-weight: 600; margin-bottom: 12px; color: #111827; }
+  .hot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .hot-card {
+    background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+  }
+  .hot-card .tld-name { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+  .hot-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; padding: 3px 0; gap: 6px; }
+  .hot-row .label { color: #6b7280; white-space: nowrap; flex-shrink: 0; }
+  .hot-row .value { text-align: right; }
+  .hot-row .price { font-weight: 600; color: #111827; }
+  .hot-row .registrar { color: #9ca3af; font-size: 11px; display: block; }
+  .hot-row .na-text { color: #9ca3af; }
+  .hot-card-error { color: #ef4444; font-size: 13px; text-align: center; padding: 20px 0; }
+  .error-message { color: #ef4444; font-size: 14px; padding: 12px; text-align: center; background: #fef2f2; border-radius: 8px; }
+  .result-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .result-header h2 { margin-bottom: 0; }
+  .back-btn { background: none; border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 12px; font-size: 13px; cursor: pointer; color: #4b5563; }
+  .back-btn:hover { background: #f3f4f6; }
+  .sort-buttons { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+  .sort-buttons button {
+    padding: 6px 16px; border: 1px solid #d1d5db; border-radius: 20px; background: #fff;
+    font-size: 13px; cursor: pointer; color: #4b5563; transition: all .2s;
+  }
+  .sort-buttons button.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .sort-buttons button:hover:not(.active) { background: #f3f4f6; }
+  .table-wrapper { overflow-x: auto; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+  thead th { text-align: left; padding: 12px 14px; background: #f9fafb; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  tbody tr:hover { background: #eff6ff; }
+  tbody tr:last-child td { border-bottom: none; }
+  .registrar-cell a { color: #2563eb; text-decoration: none; font-weight: 500; }
+  .registrar-cell a:hover { text-decoration: underline; }
+  .price-cell { white-space: nowrap; }
+  .eff-price { font-weight: 600; color: #111827; font-size: 14px; }
+  .orig-price { font-size: 11px; color: #9ca3af; margin-left: 4px; }
+  .orig-currency { font-size: 11px; color: #b0b7c3; margin-left: 4px; }
+  .na { color: #9ca3af; font-size: 12px; }
+  .promo-btn {
+    display: inline-block; margin-left: 4px; padding: 1px 6px; font-size: 11px; line-height: 1.4;
+    border: 1px solid #f59e0b; color: #d97706; background: #fffbeb; border-radius: 4px;
+    cursor: pointer; vertical-align: middle; white-space: nowrap;
+  }
+  .promo-btn:hover { background: #fef3c7; }
+  .updated-cell { font-size: 11px; color: #9ca3af; white-space: nowrap; }
+  .empty-message { padding: 40px 16px; text-align: center; color: #6b7280; font-size: 14px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
+  .loading { padding: 30px; text-align: center; color: #6b7280; font-size: 14px; }
+  footer { margin-top: auto; padding: 24px 16px; text-align: center; font-size: 12px; color: #9ca3af; line-height: 1.8; }
+  /* 模态 */
+  .modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+  .modal-content {
+    position: relative; background: #fff; border-radius: 14px; width: 100%; max-width: 520px;
+    max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: modalIn .18s ease-out;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; }
+  .modal-header h3 { font-size: 15px; font-weight: 600; color: #111827; padding-right: 12px; }
+  .modal-close { background: none; border: none; font-size: 24px; line-height: 1; cursor: pointer; color: #9ca3af; padding: 0 4px; }
+  .modal-close:hover { color: #4b5563; }
+  .modal-body { padding: 16px 20px; overflow-y: auto; }
+  .promo-item { padding: 12px 0; border-bottom: 1px dashed #e5e7eb; }
+  .promo-item:last-child { border-bottom: none; }
+  .promo-price-row { font-size: 14px; font-weight: 600; color: #111827; }
+  .promo-price-cny { font-size: 12px; color: #9ca3af; font-weight: 400; margin-left: 6px; }
+  .promo-code-row { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .promo-code-tag {
+    display: inline-block; padding: 2px 8px; background: #f3f4f6; border: 1px solid #d1d5db;
+    border-radius: 4px; font-size: 12px; font-family: monospace; color: #374151; cursor: pointer;
+    user-select: all; transition: background .15s;
+  }
+  .promo-code-tag:hover { background: #e5e7eb; }
+  .promo-code-tag.auto { background: #ecfdf5; border-color: #a7f3d0; color: #047857; cursor: default; }
+  .promo-limit { font-size: 12px; color: #d97706; margin-top: 4px; }
+  .promo-instr { font-size: 12px; color: #9ca3af; margin-top: 4px; line-height: 1.5; }
+  .promo-orig { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+  .promo-empty { text-align: center; padding: 24px 0; color: #9ca3af; font-size: 14px; }
+  .copy-toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: #111827; color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 13px;
+    z-index: 2000; opacity: 0; transition: opacity .2s; pointer-events: none;
+  }
+  .copy-toast.show { opacity: 1; }
+  @media (max-width: 640px) {
+    header h1 { font-size: 19px; }
+    .hot-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .hot-card { padding: 10px; }
+    .hot-card .tld-name { font-size: 14px; }
+    .hot-row { font-size: 11px; }
+    table { font-size: 12px; min-width: 640px; }
+    thead th, tbody td { padding: 10px 10px; }
+    .modal-content { max-width: 100%; }
+  }
+</style>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <a class="back-link" href="/">← 回首页</a>
+    <h1>哪煮米比价工具</h1>
+    <p class="subtitle">查询域名后缀在各注册商的注册、续费、转入价格</p>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="输入后缀，如 com / co.uk / 中国" autocomplete="off" spellcheck="false">
+      <button id="searchBtn">查询</button>
+    </div>
+    <div class="input-hint" id="inputHint"></div>
+  </header>
+
+  <main>
+    <section id="hotSection">
+      <h2>热门后缀</h2>
+      <div id="hotGrid" class="hot-grid"></div>
+      <div id="hotError" class="error-message" style="display:none;"></div>
+    </section>
+
+    <section id="resultSection" style="display:none;">
+      <div class="result-header">
+        <h2 id="resultTitle"></h2>
+        <button id="backToHotBtn" class="back-btn">← 返回热门</button>
+      </div>
+      <div class="sort-buttons" id="sortButtons">
+        <button data-order="register" class="active">按注册</button>
+        <button data-order="renew">按续费</button>
+        <button data-order="transfer">按转入</button>
+      </div>
+      <div id="resultLoading" class="loading" style="display:none;">查询中…</div>
+      <div class="table-wrapper" id="tableWrapper">
+        <table id="resultTable">
+          <thead>
+            <tr>
+              <th>注册商</th>
+              <th>注册价格</th>
+              <th>续费价格</th>
+              <th>转入价格</th>
+              <th>更新时间</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+      <div id="resultEmpty" class="empty-message" style="display:none;"></div>
+    </section>
+  </main>
+
+  <footer>
+    数据来自 哪煮米（nazhumi.com），价格以注册商官网为准。<br>
+    数据为最近采集的快照，非实时行情；受限券价格可能来自限量或仅新用户优惠，实际可用性请以注册商结算页面为准。
+  </footer>
+</div>
+
+<!-- 优惠弹窗 -->
+<div id="promoModal" class="modal" style="display:none;">
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <button id="modalClose" class="modal-close" aria-label="关闭">&times;</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- 复制提示 -->
+<div id="copyToast" class="copy-toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ==================== 常量与状态 ====================
+  const API_BASE = 'https://www.nazhumi.com/api/v1';
+  const HOT_TLDS = ['com', 'net', 'org', 'io', 'cc', 'me'];
+  const CACHE_TTL = 5 * 60 * 1000; // 5 分钟
+
+  const cache = new Map();        // URL -> { data, timestamp }
+  const promoCache = new Map();   // registrar|domain|order -> Promise<data>
+
+  let queryToken = 0;             // 防止旧请求覆盖新结果
+  let loadingDomain = null;       // 当前正在查询的后缀
+  let currentDomain = '';         // 当前展示结果的后缀
+  let currentData = null;         // 当前结果的 data 对象
+  let currentSortOrder = 'register';
+
+  // ==================== DOM 引用 ====================
+  const $ = (id) => document.getElementById(id);
+  const searchInput = $('searchInput');
+  const searchBtn = $('searchBtn');
+  const inputHint = $('inputHint');
+  const hotSection = $('hotSection');
+  const hotGrid = $('hotGrid');
+  const hotError = $('hotError');
+  const resultSection = $('resultSection');
+  const resultTitle = $('resultTitle');
+  const backToHotBtn = $('backToHotBtn');
+  const sortButtons = $('sortButtons');
+  const resultLoading = $('resultLoading');
+  const tableWrapper = $('tableWrapper');
+  const resultBody = $('resultBody');
+  const resultEmpty = $('resultEmpty');
+  const promoModal = $('promoModal');
+  const modalOverlay = $('modalOverlay');
+  const modalTitle = $('modalTitle');
+  const modalClose = $('modalClose');
+  const modalBody = $('modalBody');
+  const copyToast = $('copyToast');
+
+  // ==================== 工具函数 ====================
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatNum(val) {
+    if (val === 'n/a' || val == null) return '';
+    const num = Number(val);
+    if (isNaN(num)) return String(val);
+    return num.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function isNA(val) {
+    return val === 'n/a' || val == null;
+  }
+
+  function toNumber(val) {
+    if (isNA(val)) return Infinity;
+    const n = Number(val);
+    return isNaN(n) ? Infinity : n;
+  }
+
+  function orderLabel(order) {
+    return { register: '注册', renew: '续费', transfer: '转入' }[order] || order;
+  }
+
+  function showToast(msg) {
+    copyToast.textContent = msg;
+    copyToast.classList.add('show');
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => copyToast.classList.remove('show'), 1800);
+  }
+
+  // ==================== 网络与缓存 ====================
+  async function fetchJson(url) {
+    const hit = cache.get(url);
+    if (hit && Date.now() - hit.timestamp < CACHE_TTL) {
+      return hit.data;
+    }
+    if (hit) cache.delete(url);
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('网络请求失败（HTTP ' + res.status + '）');
+    const json = await res.json();
+    if (json.code !== 100) throw new Error(json.msg || '接口返回错误（code=' + json.code + '）');
+
+    cache.set(url, { data: json, timestamp: Date.now() });
+    return json;
+  }
+
+  // ==================== 热门榜单 ====================
+  async function loadHotTlds() {
+    hotGrid.innerHTML = '';
+    hotError.style.display = 'none';
+
+    let successCount = 0;
+    const tasks = HOT_TLDS.map((tld) => loadOneHotTld(tld).then(
+      () => { successCount++; },
+      () => {}
+    ));
+    await Promise.allSettled(tasks);
+
+    if (successCount === 0) {
+      hotError.textContent = '热门后缀暂时无法加载，请稍后刷新重试。';
+      hotError.style.display = 'block';
+    }
+  }
+
+  async function loadOneHotTld(tld) {
+    const card = document.createElement('div');
+    card.className = 'hot-card';
+    card.innerHTML = '<div class="tld-name">.' + escapeHtml(tld) + '</div>' +
+      '<div class="hot-card-error">加载中…</div>';
+    hotGrid.appendChild(card);
+
+    try {
+      const url = API_BASE + '?domain=' + encodeURIComponent(tld) + '&order=register';
+      const json = await fetchJson(url);
+      const list = (json.data && json.data.price) ? json.data.price : [];
+
+      if (!list.length) {
+        card.innerHTML = '<div class="tld-name">.' + escapeHtml(tld) + '</div>' +
+          '<div class="hot-card-error">暂无数据</div>';
+        return;
+      }
+
+      const regMin = findMinRow(list, 'register_eff_cny');
+      const renewMin = findMinRow(list, 'renew_eff_cny');
+      const transMin = findMinRow(list, 'transfer_eff_cny');
+
+      card.innerHTML = '<div class="tld-name">.' + escapeHtml(tld) + '</div>' +
+        renderHotRow('注册', regMin) +
+        renderHotRow('续费', renewMin) +
+        renderHotRow('转入', transMin);
+    } catch (e) {
+      card.innerHTML = '<div class="tld-name">.' + escapeHtml(tld) + '</div>' +
+        '<div class="hot-card-error">暂无数据</div>';
+    }
+  }
+
+  function findMinRow(list, field) {
+    let min = Infinity;
+    let row = null;
+    for (const item of list) {
+      const val = item[field];
+      if (isNA(val)) continue;
+      const num = Number(val);
+      if (!isNaN(num) && num < min) {
+        min = num;
+        row = item;
+      }
+    }
+    return row ? { value: min, registrar: row.registrarname || row.registrar || '' } : null;
+  }
+
+  function renderHotRow(label, minInfo) {
+    if (!minInfo) {
+      return '<div class="hot-row"><span class="label">' + label +
+        '</span><span class="value"><span class="na-text">暂无</span></span></div>';
+    }
+    return '<div class="hot-row"><span class="label">' + label +
+      '</span><span class="value"><span class="price">¥ ' + formatNum(minInfo.value) +
+      '</span><span class="registrar">' + escapeHtml(minInfo.registrar) + '</span></span></div>';
+  }
+
+  // ==================== 查询结果 ====================
+  function setInputHint(msg) {
+    inputHint.textContent = msg || '';
+  }
+
+  function sanitizeDomain(raw) {
+    let s = String(raw || '').trim();
+    s = s.replace(/^\.+/, ''); // 去掉开头的点
+    return s;
+  }
+
+  function isUrlLike(s) {
+    return /:\/\//.test(s) || s.indexOf('/') !== -1;
+  }
+
+  function isMeaningless(s) {
+    // 去掉点和空白后为空，视为无意义输入
+    return s.replace(/[.\s]/g, '') === '';
+  }
+
+  async function performSearch(rawDomain) {
+    const domain = sanitizeDomain(rawDomain);
+
+    if (!domain || isMeaningless(domain)) {
+      setInputHint('请输入域名后缀，如 com / co.uk / 中国。');
+      return;
+    }
+    if (isUrlLike(domain)) {
+      setInputHint('请输入后缀（如 com / co.uk / 中国），不要输入完整网址。');
+      return;
+    }
+
+    // 明显是完整域名时给出提示（但不确定时仍按原样请求，空结果再友好提示）
+    if (domain.indexOf('.') !== -1 && domain.split('.').length >= 2) {
+      const parts = domain.split('.');
+      const last = parts[parts.length - 1];
+      // 粗略判断：如果包含点且最后一段看起来像常见后缀，提示用户可能输入了完整域名
+      if (/^[a-z]{2,}$/i.test(last) && parts.length >= 2 && parts[0].length > 0) {
+        // 不强制拦截，仅在无结果时提示；这里不提前返回，避免误伤 co.uk 等多级后缀
+      }
+    }
+
+    if (loadingDomain === domain) return; // 同一后缀查询进行中，不重复发起
+
+    const token = ++queryToken;
+    loadingDomain = domain;
+    setInputHint('');
+
+    // 切换界面
+    hotSection.style.display = 'none';
+    resultSection.style.display = 'block';
+    resultTitle.textContent = '.' + domain + ' 的报价';
+    resultBody.innerHTML = '';
+    resultEmpty.style.display = 'none';
+    tableWrapper.style.display = 'none';
+    resultLoading.style.display = 'block';
+    searchBtn.disabled = true;
+
+    try {
+      const url = API_BASE + '?domain=' + encodeURIComponent(domain) + '&order=register';
+      const json = await fetchJson(url);
+
+      if (token !== queryToken) return; // 旧请求，忽略
+
+      const data = json.data || {};
+      const list = data.price || [];
+
+      if (!list.length) {
+        resultLoading.style.display = 'none';
+        resultEmpty.textContent = '没有找到 .' + domain + ' 的报价，请检查后缀是否输入正确。';
+        if (domain.indexOf('.') !== -1) {
+          resultEmpty.textContent += ' 如果您输入的是完整域名，请只输入后缀部分（如 com / co.uk）。';
+        }
+        resultEmpty.style.display = 'block';
+        return;
+      }
+
+      currentDomain = domain;
+      currentData = data;
+      currentSortOrder = 'register';
+      updateSortButtons();
+      renderResultTable();
+    } catch (e) {
+      if (token !== queryToken) return;
+      resultLoading.style.display = 'none';
+      resultEmpty.textContent = '查询失败：' + (e.message || '网络异常，请稍后重试。');
+      resultEmpty.style.display = 'block';
+    } finally {
+      if (token === queryToken) {
+        loadingDomain = null;
+        resultLoading.style.display = 'none';
+        searchBtn.disabled = false;
+      }
+    }
+  }
+
+  function updateSortButtons() {
+    const btns = sortButtons.querySelectorAll('button');
+    btns.forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.order === currentSortOrder);
+    });
+  }
+
+  function renderResultTable() {
+    if (!currentData || !currentData.price) return;
+
+    const list = currentData.price.slice();
+    const field = currentSortOrder + '_eff_cny';
+
+    list.sort((a, b) => {
+      const aVal = toNumber(a[field]);
+      const bVal = toNumber(b[field]);
+      if (aVal !== bVal) return aVal - bVal;
+      return String(a.registrar || '').localeCompare(String(b.registrar || ''));
+    });
+
+    const rows = list.map((row) => {
+      const registrarName = row.registrarname || row.registrar || '未知';
+      const web = row.registrarweb || '';
+      const nameHtml = web
+        ? '<a href="' + escapeHtml(web) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(registrarName) + '</a>'
+        : escapeHtml(registrarName);
+
+      const regCell = renderPriceCell(row, 'register');
+      const renewCell = renderPriceCell(row, 'renew');
+      const transCell = renderPriceCell(row, 'transfer');
+      const updated = row.updatedtime ? escapeHtml(row.updatedtime) : '—';
+
+      return '<tr>' +
+        '<td class="registrar-cell">' + nameHtml + '</td>' +
+        regCell +
+        renewCell +
+        transCell +
+        '<td class="updated-cell">' + updated + '</td>' +
+        '</tr>';
+    });
+
+    resultBody.innerHTML = rows.join('');
+    tableWrapper.style.display = '';
+    resultEmpty.style.display = 'none';
+    resultLoading.style.display = 'none';
+
+    // 绑定券按钮（事件委托）
+    resultBody.querySelectorAll('.promo-btn').forEach((btn) => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const registrar = btn.dataset.registrar;
+        const domain = btn.dataset.domain;
+        const order = btn.dataset.order;
+        openPromoModal(registrar, domain, order);
+      });
+    });
+  }
+
+  function renderPriceCell(row, type) {
+    const effField = type + '_eff_cny';
+    const cnyField = type + '_cny';
+    const origField = type;
+    const effVal = row[effField];
+    const cnyVal = row[cnyField];
+    const origVal = row[origField];
+    const sign = row.currencysign || '';
+
+    if (isNA(effVal)) {
+      return '<td class="price-cell"><span class="na">不适用</span></td>';
+    }
+
+    let html = '<span class="eff-price">¥ ' + formatNum(effVal) + '</span>';
+
+    // 标准价对照
+    if (!isNA(cnyVal)) {
+      html += '<span class="orig-price">原价 ¥ ' + formatNum(cnyVal) + '</span>';
+    }
+
+    // 原币种对照
+    if (!isNA(origVal)) {
+      html += '<span class="orig-currency">' + escapeHtml(sign) + formatNum(origVal) + '</span>';
+    }
+
+    // 券按钮
+    const pc = row.promocode;
+    let hasPromo = false;
+    if (pc && typeof pc === 'object') {
+      hasPromo = !!pc[type];
+    }
+    if (hasPromo) {
+      html += '<button class="promo-btn" data-registrar="' + escapeHtml(row.registrar) +
+        '" data-domain="' + escapeHtml(currentDomain) +
+        '" data-order="' + escapeHtml(type) + '">券</button>';
+    }
+
+    return '<td class="price-cell">' + html + '</td>';
+  }
+
+  // ==================== 优惠弹窗 ====================
+  function fetchPromoData(registrar, domain, order) {
+    const key = registrar + '|' + domain + '|' + order;
+    if (promoCache.has(key)) return promoCache.get(key);
+
+    const url = API_BASE + '?registrar=' + encodeURIComponent(registrar) +
+      '&domain=' + encodeURIComponent(domain) + '&order=' + order;
+
+    const promise = fetchJson(url)
+      .then((json) => json.data)
+      .catch((err) => {
+        promoCache.delete(key); // 失败时移除，便于重试
+        throw err;
+      });
+
+    promoCache.set(key, promise);
+    return promise;
+  }
+
+  function openPromoModal(registrar, domain, order) {
+    // 标题
+    const row = findRowByRegistrar(registrar);
+    const registrarName = row ? (row.registrarname || registrar) : registrar;
+    modalTitle.textContent = registrarName + ' .' + domain + ' ' + orderLabel(order) + '优惠';
+
+    modalBody.innerHTML = '<div class="promo-empty">查询中…</div>';
+    promoModal.style.display = 'flex';
+
+    fetchPromoData(registrar, domain, order)
+      .then((data) => {
+        renderPromoModal(data);
+      })
+      .catch((err) => {
+        modalBody.innerHTML = '<div class="promo-empty">查询失败：' + escapeHtml(err.message || '网络异常') + '</div>';
+      });
+  }
+
+  function findRowByRegistrar(registrar) {
+    if (!currentData || !currentData.price) return null;
+    return currentData.price.find((r) => r.registrar === registrar) || null;
+  }
+
+  function renderPromoModal(data) {
+    if (!data) {
+      modalBody.innerHTML = '<div class="promo-empty">暂无数据</div>';
+      return;
+    }
+
+    if (data.promocode === false) {
+      modalBody.innerHTML = '<div class="promo-empty">优惠已失效或暂无数据</div>';
+      return;
+    }
+
+    const promos = data.promos || [];
+    if (!promos.length) {
+      modalBody.innerHTML = '<div class="promo-empty">暂无可用优惠</div>';
+      return;
+    }
+
+    let html = '';
+    promos.forEach((promo) => {
+      const price = promo.price;
+      const priceCny = promo.price_cny;
+      const sign = promo.currencysign || '';
+      const code = promo.code || '';
+      const instruction = promo.instruction || '';
+      const limitCount = Number(promo.limit_count) || 0;
+      const newUserOnly = !!promo.new_user_only;
+
+      // 价格行
+      html += '<div class="promo-item">';
+      html += '<div class="promo-price-row">';
+      if (!isNA(price)) {
+        html += '券后价 ' + escapeHtml(sign) + formatNum(price);
+      }
+      if (!isNA(priceCny)) {
+        html += '<span class="promo-price-cny">≈ ' + formatNum(priceCny) + ' 元</span>';
+      }
+      html += '</div>';
+
+      // 券码行
+      html += '<div class="promo-code-row">';
+      if (code) {
+        const codes = String(code).split(',').map((c) => c.trim()).filter(Boolean);
+        codes.forEach((c) => {
+          html += '<span class="promo-code-tag" data-code="' + escapeHtml(c) + '">' + escapeHtml(c) + '</span>';
+        });
+      } else {
+        html += '<span class="promo-code-tag auto">自动优惠</span>';
+      }
+      html += '</div>';
+
+      // 限制说明
+      let limitText = '';
+      if (newUserOnly && limitCount > 0) limitText = '限新用户 ' + limitCount + ' 次';
+      else if (newUserOnly) limitText = '限新用户';
+      else if (limitCount > 0) limitText = '限 ' + limitCount + ' 次';
+      if (limitText) {
+        html += '<div class="promo-limit">' + escapeHtml(limitText) + '</div>';
+      }
+
+      // 说明
+      if (instruction) {
+        html += '<div class="promo-instr">' + escapeHtml(instruction) + '</div>';
+      }
+
+      html += '</div>';
+    });
+
+    // 原价对照
+    const origPrice = data.origprice;
+    const origPriceCny = data.origprice_cny;
+    const origSign = data.origcurrencysign || data.origcurrency || '';
+    if (!isNA(origPrice) || !isNA(origPriceCny)) {
+      html += '<div class="promo-orig">原价：';
+      if (!isNA(origPrice)) {
+        html += escapeHtml(origSign) + formatNum(origPrice);
+      }
+      if (!isNA(origPriceCny)) {
+        html += '（≈ ' + formatNum(origPriceCny) + ' 元）';
+      }
+      html += '</div>';
+    }
+
+    modalBody.innerHTML = html;
+
+    // 绑定复制事件
+    modalBody.querySelectorAll('.promo-code-tag[data-code]').forEach((tag) => {
+      tag.addEventListener('click', () => {
+        copyCode(tag);
+      });
+    });
+  }
+
+  async function copyCode(el) {
+    const text = el.dataset.code || el.textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('已复制：' + text);
+    } catch (e) {
+      // 剪贴板不可用，选中文本并提示
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      showToast('请按 Ctrl+C / Cmd+C 手动复制');
+    }
+  }
+
+  function closePromoModal() {
+    promoModal.style.display = 'none';
+  }
+
+  // ==================== 事件绑定 ====================
+  function bindEvents() {
+    searchBtn.addEventListener('click', () => {
+      performSearch(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        performSearch(searchInput.value);
+      }
+    });
+
+    // 排序按钮
+    sortButtons.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('button[data-order]');
+      if (!btn) return;
+      const order = btn.dataset.order;
+      if (order === currentSortOrder) return;
+      currentSortOrder = order;
+      updateSortButtons();
+      renderResultTable();
+    });
+
+    // 返回热门
+    backToHotBtn.addEventListener('click', () => {
+      resultSection.style.display = 'none';
+      hotSection.style.display = '';
+      searchInput.value = '';
+      setInputHint('');
+      currentData = null;
+      currentDomain = '';
+      queryToken++; // 使进行中的请求失效
+      loadingDomain = null;
+      searchBtn.disabled = false;
+    });
+
+    // 弹窗关闭
+    modalClose.addEventListener('click', closePromoModal);
+    modalOverlay.addEventListener('click', closePromoModal);
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && promoModal.style.display !== 'none') {
+        closePromoModal();
+      }
+    });
+  }
+
+  // ==================== 初始化 ====================
+  bindEvents();
+  loadHotTlds();
+})();
+</script>
+</body>
+</html>

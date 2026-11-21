@@ -4,151 +4,284 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>小兴365 工具站</title>
-  <meta name="description" content="小兴365 的在线小工具，都是做站时顺手写的，用得上就拿去用。">
-  <meta name="keywords" content="在线工具,建站工具,Cloudflare,Hexo,robots.txt">
+  <meta name="description" content="小兴365 的在线小工具：建站配置、编码转换、文本处理和开发调试，用得上就拿去用。">
+  <meta name="keywords" content="在线工具,建站工具,Cloudflare,Hexo,robots.txt,Base64,JSON,UUID,哈希,JWT,正则">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/theme.css">
   <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #1a1a1a;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --accent: #2563eb;
-      --hover-bg: #f9fafb;
+    [v-cloak] { display: none; }
+    #app .wrap { max-width: 1040px; }
+
+    .hero { position: relative; overflow: hidden; }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      top: -90px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      pointer-events: none;
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #111111;
-        --fg: #e5e5e5;
-        --muted: #8a8a8a;
-        --border: #262626;
-        --accent: #60a5fa;
-        --hover-bg: #1a1a1a;
-      }
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      font-size: 15px;
-    }
-    .wrap {
-      max-width: 620px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-    header {
-      padding: 56px 0 36px;
-      border-bottom: 1px solid var(--border);
-    }
-    header h1 {
-      font-size: 22px;
+    .hero > * { position: relative; z-index: 1; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
       font-weight: 600;
-      letter-spacing: -0.3px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 5px 12px;
+      border-radius: 999px;
     }
-    header p {
-      color: var(--muted);
-      font-size: 14px;
-      margin-top: 8px;
+    .eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
     }
-    main { padding: 6px 0; }
-    .tool {
-      display: block;
-      padding: 18px 12px;
-      border-bottom: 1px solid var(--border);
-      text-decoration: none;
-      color: inherit;
-      margin: 0 -12px;
-      border-radius: 6px;
-      transition: background 0.15s;
-    }
-    .tool:hover { background: var(--hover-bg); }
-    .tool h2 {
+    .hero h1 { font-size: 30px; letter-spacing: -1px; margin-top: 14px; }
+    .hero p { font-size: 14.5px; margin-top: 8px; max-width: 640px; }
+
+    .home-main { padding: 26px; }
+    .search-wrap { position: relative; }
+    .search-wrap input {
+      width: 100%;
+      max-width: none;
+      height: 52px;
+      padding: 0 18px 0 50px;
+      font-family: inherit;
       font-size: 15px;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    .tool p {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-    .tool.soon { opacity: 0.45; pointer-events: none; }
-    footer {
-      padding: 36px 0 60px;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.9;
-    }
-    footer a {
-      color: var(--muted);
-      text-decoration: none;
-      border-bottom: 1px solid var(--border);
-    }
-    footer a:hover { color: var(--fg); border-bottom-color: var(--fg); }
-    .btn {
-      display: inline-block;
-      margin-top: 16px;
-      padding: 8px 16px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
       color: var(--fg);
-      text-decoration: none;
-      font-size: 13px;
-      transition: background 0.15s;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      box-shadow: inset 0 1px 2px rgba(16, 24, 40, .03);
+      transition: border-color .15s, box-shadow .15s;
     }
-    .btn:hover { background: var(--hover-bg); border-color: var(--fg); }
-    @media (max-width: 480px) {
-      header { padding: 40px 0 28px; }
-      header h1 { font-size: 20px; }
+    .search-wrap input::placeholder { color: var(--muted); opacity: .85; }
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 21px;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .search-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 11px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .meta-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .meta-chips span {
+      font-size: 12px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 5px 11px;
+      border-radius: 999px;
+    }
+
+    .group { margin-top: 30px; }
+    .group:first-of-type { margin-top: 22px; }
+    .group-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 13px;
+    }
+    .group-title::before {
+      content: "";
+      width: 4px;
+      height: 16px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+    .group-title span { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .tool-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 156px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: inherit;
+      text-decoration: none;
+      transition: transform .15s, border-color .15s, box-shadow .15s;
+    }
+    a.tool-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 24px rgba(79, 70, 229, .12);
+    }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .tool-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .card-arrow { color: var(--muted); font-size: 15px; line-height: 1.4; }
+    .tool-card h3 { font-size: 15px; font-weight: 600; margin-top: 14px; line-height: 1.45; }
+    .tool-card p { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.6; flex: 1; }
+    .card-tag { font-size: 11px; color: var(--muted); margin-top: 12px; }
+    .tool-card.soon { opacity: .5; cursor: default; }
+    .empty { padding: 44px 0; text-align: center; color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 560px) {
+      .hero h1 { font-size: 24px; }
+      .hero::after { width: 180px; height: 180px; right: -80px; top: -60px; }
+      .home-main { padding: 20px; }
+      .search-wrap input { max-width: none; }
+      .tool-grid { grid-template-columns: 1fr; gap: 10px; }
+      .tool-card { min-height: 0; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>小兴365 工具站</h1>
-      <p>做站时顺手写的小工具，用得上就拿去用。</p>
-    </header>
-    <main>
-      <a class="tool" href="/redirect-generator/">
-        <h2>Cloudflare 重定向表达式生成器</h2>
-        <p>填旧域名和新域名，生成能直接粘进 Cloudflare 重定向规则的表达式。</p>
-      </a>
+  <div id="app" v-cloak>
+    <div class="wrap">
+      <header class="hero">
+        <span class="eyebrow">{{ tools.length }} 个在线工具 · 打开即用</span>
+        <h1>{{ site.name }}</h1>
+        <p>{{ site.tagline }}</p>
+        <div class="meta-chips">
+          <span>无需登录</span>
+          <span>纯前端</span>
+          <span>支持手机</span>
+        </div>
+      </header>
 
-      <a class="tool" href="/robots-generator/">
-        <h2>robots.txt 生成器</h2>
-        <p>勾一下要屏蔽的目录，生成一份能直接用的 robots.txt。</p>
-      </a>
+      <main class="home-main">
+        <div class="search-wrap">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input type="search" v-model="keyword" placeholder="搜索工具名称、功能或分类，比如 Base64、哈希、建站…" aria-label="搜索工具" autocomplete="off">
+        </div>
+        <div class="search-meta">
+          <span>{{ keyword ? '找到 ' + matchedCount + ' 个匹配的工具' : '共 ' + tools.length + ' 个工具，按分类整理' }}</span>
+          <button v-if="keyword" type="button" class="link-btn" @click="keyword = ''">清除搜索</button>
+        </div>
 
-      <a class="tool" href="/front-matter/">
-        <h2>Hexo Front-matter 生成器</h2>
-        <p>填标题、日期、分类、标签，生成 Hexo 文章的 YAML 头。</p>
-      </a>
+        <section class="group" v-for="group in groupedTools" :key="group.name">
+          <h2 class="group-title">{{ group.name }} <span>{{ group.items.length }}</span></h2>
+          <div class="tool-grid">
+            <template v-for="tool in group.items" :key="tool.link">
+              <a v-if="!tool.soon"
+                 class="tool-card"
+                 :href="tool.link"
+                 :target="isExternal(tool.link) ? '_blank' : null"
+                 :rel="isExternal(tool.link) ? 'noopener noreferrer' : null">
+                <div class="card-top">
+                  <span class="tool-icon">{{ tool.title.charAt(0) }}</span>
+                  <span class="card-arrow">{{ isExternal(tool.link) ? '↗' : '→' }}</span>
+                </div>
+                <h3>{{ tool.title }}</h3>
+                <p v-if="tool.desc">{{ tool.desc }}</p>
+                <span class="card-tag">{{ tool.category || '其他' }}</span>
+              </a>
+              <div v-else class="tool-card soon">
+                <div class="card-top"><span class="tool-icon">{{ tool.title.charAt(0) }}</span><span class="badge">待上线</span></div>
+                <h3>{{ tool.title }}</h3>
+                <p v-if="tool.desc">{{ tool.desc }}</p>
+                <span class="card-tag">{{ tool.category || '其他' }}</span>
+              </div>
+            </template>
+          </div>
+        </section>
 
-      <a class="tool" href="/meta-generator/">
-        <h2>Meta 标签生成器</h2>
-        <p>生成 title、description、keywords，还有 Open Graph 和 Twitter Card。</p>
-      </a>
+        <p class="empty" v-if="groupedTools.length === 0">没有匹配的工具，换个词试试。</p>
+      </main>
 
-      <a class="tool" href="/encoding-converter/">
-        <h2>文本编码转换器</h2>
-        <p>UTF-8 和 GBK 互转，中文乱码的时候用得上。</p>
-      </a>
-
-      <div class="tool soon">
-        <h2>JSON 格式化</h2>
-        <p>还没写。</p>
-      </div>
-    </main>
-
-    <footer>
-      <div>博客在 <a href="https://xiaoxing365.com/">xiaoxing365.com</a>，写点建站和折腾的记录。</div>
-      <div>有问题发邮件：<a href="mailto:mcxiaoxing365@163.com">mcxiaoxing365@163.com</a></div>
-      <a class="btn" href="https://xiaoxing365.com/">去博客看看</a>
-    </footer>
+      <footer>
+        <div>博客在 <a :href="site.footer.blogUrl">{{ site.footer.blogText }}</a>，{{ site.footer.blogNote }}</div>
+        <div>有问题发邮件：<a :href="'mailto:' + site.footer.email">{{ site.footer.email }}</a></div>
+        <a class="btn" :href="site.footer.blogUrl">{{ site.footer.buttonText }}</a>
+      </footer>
+    </div>
   </div>
+
+  <script src="tools.js"></script>
+  <script>
+    (function () {
+      var data = window.SITE_DATA;
+      if (!data) return;
+      document.title = data.name;
+      var desc = document.querySelector('meta[name="description"]');
+      var keys = document.querySelector('meta[name="keywords"]');
+      if (desc && data.description) desc.content = data.description;
+      if (keys && data.keywords) keys.content = data.keywords;
+    })();
+  </script>
+  <script src="vendor/vue.global.prod.js"></script>
+  <script>
+    Vue.createApp({
+      data: function () {
+        return {
+          site: window.SITE_DATA || { name: '工具站', tools: [], footer: {} },
+          keyword: ''
+        };
+      },
+      computed: {
+        tools: function () {
+          return (this.site.tools || []).filter(function (t) { return t && t.title && t.link; });
+        },
+        groupedTools: function () {
+          var q = this.keyword.trim().toLowerCase();
+          var groups = {};
+          this.tools.filter(function (t) {
+            return !q || (t.title + ' ' + (t.desc || '') + ' ' + (t.category || '')).toLowerCase().indexOf(q) !== -1;
+          }).forEach(function (t) {
+            var name = t.category || '其他';
+            if (!groups[name]) groups[name] = [];
+            groups[name].push(t);
+          });
+          var preferred = ['建站工具', '文本处理', '编码转换', '开发工具', '设计工具', '其他'];
+          var names = preferred.filter(function (n) { return groups[n]; });
+          Object.keys(groups).forEach(function (n) {
+            if (preferred.indexOf(n) === -1) names.push(n);
+          });
+          return names.map(function (n) { return { name: n, items: groups[n] }; });
+        },
+        matchedCount: function () {
+          return this.groupedTools.reduce(function (sum, group) { return sum + group.items.length; }, 0);
+        }
+      },
+      methods: {
+        isExternal: function (link) { return /^https?:\/\//i.test(link); }
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>

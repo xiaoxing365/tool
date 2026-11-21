@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS 格式化压缩 - 小兴365</title>
+<meta name="description" content="把 CSS 美化缩进或压成一行">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">← 回首页</a>
+    <h1>CSS 格式化压缩</h1>
+    <p>把 CSS 美化缩进或压成一行</p>
+  </header>
+  <main>
+    <label for="input">输入 CSS</label>
+    <textarea id="input" rows="10" placeholder="body { margin: 0; padding: 0; }" spellcheck="false"></textarea>
+
+    <div class="actions">
+      <button type="button" class="primary" id="formatBtn">格式化</button>
+      <button type="button" class="secondary" id="minifyBtn">压缩</button>
+      <button type="button" class="copy-btn" id="copyBtn">复制</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="output-block">
+      <div class="label-row">
+        <span class="label">结果</span>
+      </div>
+      <pre id="output">等待输入…</pre>
+    </div>
+  </main>
+  <footer>
+    工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  </footer>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var inputEl = $('input'), outputEl = $('output'), statusEl = $('status');
+
+  function protect(css) {
+    var tokens = [], out = '', i = 0, n = css.length;
+    while (i < n) {
+      var ch = css[i];
+      if (ch === '/' && css[i + 1] === '*') {
+        var end = css.indexOf('*/', i + 2);
+        end = end === -1 ? n : end + 2;
+        tokens.push({ value: css.slice(i, end), keep: false });
+        out += '\u0000' + (tokens.length - 1) + '\u0000';
+        i = end;
+      } else if (ch === '"' || ch === "'") {
+        var quote = ch, start = i;
+        i++;
+        while (i < n) {
+          if (css[i] === '\\') { i += 2; continue; }
+          if (css[i] === quote) { i++; break; }
+          i++;
+        }
+        tokens.push({ value: css.slice(start, i), keep: true });
+        out += '\u0000' + (tokens.length - 1) + '\u0000';
+      } else {
+        out += ch;
+        i++;
+      }
+    }
+    return { text: out, tokens: tokens };
+  }
+
+  function restore(text, tokens, keepComments) {
+    return text.replace(/\u0000(\d+)\u0000/g, function (_, num) {
+      var token = tokens[Number(num)];
+      if (!token) return '';
+      return (token.keep || keepComments) ? token.value : '';
+    });
+  }
+
+  function formatCode(code) {
+    var lines = [], buf = '', level = 0;
+    // 缩进宽度封顶，否则上万层嵌套会产生几十亿字符的行，直接把浏览器拖死
+    function pad() { return new Array(Math.min(level, 16) + 1).join('  '); }
+    function flush() {
+      var text = buf.replace(/\s+/g, ' ').trim();
+      if (text) lines.push(pad() + text);
+      buf = '';
+    }
+    for (var i = 0; i < code.length; i++) {
+      var ch = code[i];
+      if (ch === '{') {
+        buf += ' {';
+        flush();
+        level++;
+      } else if (ch === '}') {
+        flush();
+        level = Math.max(0, level - 1);
+        lines.push(pad() + '}');
+      } else if (ch === ';') {
+        buf += ';';
+        flush();
+      } else {
+        buf += ch;
+      }
+    }
+    flush();
+    return lines.join('\n');
+  }
+
+  function minifyCode(code) {
+    return code.replace(/\s+/g, ' ')
+      .replace(/\s*([{};:,])\s*/g, '$1')
+      .replace(/;}/g, '}')
+      .trim();
+  }
+
+  var MAX_INPUT = 300000;
+  var MAX_OUTPUT = 5000000;
+
+  function run(mode) {
+    statusEl.textContent = '';
+    var raw = inputEl.value.trim();
+    if (!raw) {
+      outputEl.textContent = '等待输入…';
+      return;
+    }
+    if (raw.length > MAX_INPUT) {
+      outputEl.textContent = '';
+      statusEl.textContent = '内容超过 ' + MAX_INPUT + ' 个字符，为避免页面卡死已暂停处理，请分段格式化。';
+      return;
+    }
+    try {
+      var p = protect(raw);
+      var result = mode === 'format'
+        ? restore(formatCode(p.text), p.tokens, true)
+        : restore(minifyCode(p.text), p.tokens, false);
+      if (result.length > MAX_OUTPUT) {
+        result = result.slice(0, MAX_OUTPUT);
+        statusEl.textContent = '结果超过 5 MB，仅显示前 5 MB。';
+      }
+      outputEl.textContent = result;
+    } catch (e) {
+      outputEl.textContent = '';
+      statusEl.textContent = '处理失败：' + (e.message || '内容结构异常，请检查括号是否完整');
+    }
+  }
+
+  $('formatBtn').addEventListener('click', function () { run('format'); });
+  $('minifyBtn').addEventListener('click', function () { run('minify'); });
+
+  $('copyBtn').addEventListener('click', function () {
+    var btn = this;
+    var text = outputEl.textContent;
+    if (!text || text === '等待输入…') return;
+    function done() {
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = '复制'; }, 1500);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>
