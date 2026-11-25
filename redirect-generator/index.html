@@ -4,7 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cloudflare 重定向表达式生成器 - 小兴365</title>
-<meta name="description" content="填旧域名和新域名，生成能直接粘进 Cloudflare 重定向规则的表达式。">
+<meta name="description" content="在线生成 Cloudflare 重定向规则表达式：填写旧域名、新域名和路径，一键复制可粘贴到 Cloudflare Rules 的表达式，适合域名更换、301 跳转和批量重定向。">
+<!-- SEO:START -->
+<link rel="canonical" href="https://xiaoxing365.top/redirect-generator/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="小兴365 工具站">
+<meta property="og:title" content="Cloudflare 重定向表达式生成器 - 小兴365">
+<meta property="og:description" content="在线生成 Cloudflare 重定向规则表达式：填写旧域名、新域名和路径，一键复制可粘贴到 Cloudflare Rules 的表达式，适合域名更换、301 跳转和批量重定向。">
+<meta property="og:url" content="https://xiaoxing365.top/redirect-generator/">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cloudflare 重定向表达式生成器 - 小兴365">
+<meta name="twitter:description" content="在线生成 Cloudflare 重定向规则表达式：填写旧域名、新域名和路径，一键复制可粘贴到 Cloudflare Rules 的表达式，适合域名更换、301 跳转和批量重定向。">
+<meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Cloudflare 重定向表达式生成器",
+  "url": "https://xiaoxing365.top/redirect-generator/",
+  "description": "在线生成 Cloudflare 重定向规则表达式：填写旧域名、新域名和路径，一键复制可粘贴到 Cloudflare Rules 的表达式，适合域名更换、301 跳转和批量重定向。",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "zh-CN",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "小兴365 工具站",
+    "url": "https://xiaoxing365.top/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "CNY"
+  }
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "首页",
+      "item": "https://xiaoxing365.top/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Cloudflare 重定向表达式生成器",
+      "item": "https://xiaoxing365.top/redirect-generator/"
+    }
+  ]
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "生成的表达式能直接粘贴到 Cloudflare 吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "可以，格式对应 Cloudflare Rules 的表达式语法；保存前建议在规则编辑器里确认字段和预览结果。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "旧域名需要先接入 Cloudflare 吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "需要。只有 DNS 托管在 Cloudflare 且开启代理的域名，重定向规则才会生效。"
+      }
+    }
+  ]
+}</script>
+<!-- SEO:END -->
 <style>
   :root {
     --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
@@ -119,8 +193,40 @@
     </div>
   </main>
 
+  <!-- CONTENT:START -->
+<section class="tool-content card">
+  <h2>关于 Cloudflare 重定向表达式生成器</h2>
+  <p>换域名或做 301 跳转时，Cloudflare 的 Redirect Rules 需要一段表达式。这个工具把旧域名、新域名、路径和查询参数拼成匹配表达式与目标 URL，复制后就能粘到 Cloudflare 规则里。</p>
+  <h2>怎么用</h2>
+  <ol>
+    <li>填旧域名和新域名，域名不要带 https:// 或结尾斜杠。</li>
+    <li>按需勾选「保留路径和参数」和「同时匹配 www 子域名」。</li>
+    <li>复制匹配表达式和目标 URL，在 Cloudflare 的「规则 → 重定向规则」中创建规则，状态码选 301。</li>
+  </ol>
+  <h2>常见问题</h2>
+  <h3>生成的表达式能直接粘贴到 Cloudflare 吗？</h3>
+  <p>可以，格式对应 Cloudflare Rules 的表达式语法；保存前建议在规则编辑器里确认字段和预览结果。</p>
+  <h3>旧域名需要先接入 Cloudflare 吗？</h3>
+  <p>需要。只有 DNS 托管在 Cloudflare 且开启代理的域名，重定向规则才会生效。</p>
+  <p class="updated">最后更新：2026-11-25</p>
+</section>
+<!-- CONTENT:END -->
+  <!-- RELATED:START -->
+<section class="related card">
+  <h2>相关工具</h2>
+  <div class="related-links">
+    <a href="/robots-generator/">robots.txt 生成器</a>
+    <a href="/domain-price/">域名注册价格比价</a>
+    <a href="/front-matter/">Hexo Front-matter 生成器</a>
+    <a href="/meta-generator/">Meta 标签生成器</a>
+  </div>
+</section>
+<!-- RELATED:END -->
   <footer>
     工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  <!-- FOOTER-LINKS:START -->
+<br><a href="/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/contact/">联系</a>
+<!-- FOOTER-LINKS:END -->
   </footer>
 </div>
 

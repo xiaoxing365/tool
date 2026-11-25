@@ -3,8 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文本编码转换器 - 小兴365</title>
-<meta name="description" content="UTF-8 和 GBK 互转，中文乱码的时候用得上。">
+<title>UTF-8 与 GBK 编码转换 - 中文乱码修复 | 小兴365</title>
+<meta name="description" content="在线转换 UTF-8 和 GBK 编码，修复中文乱码；支持 UTF-8 与 GBK 互转、UTF-8 与 Latin-1 等常见乱码场景，纯浏览器本地处理。">
+<!-- SEO:START -->
+<link rel="canonical" href="https://xiaoxing365.top/encoding-converter/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="小兴365 工具站">
+<meta property="og:title" content="UTF-8 与 GBK 编码转换 - 中文乱码修复 | 小兴365">
+<meta property="og:description" content="在线转换 UTF-8 和 GBK 编码，修复中文乱码；支持 UTF-8 与 GBK 互转、UTF-8 与 Latin-1 等常见乱码场景，纯浏览器本地处理。">
+<meta property="og:url" content="https://xiaoxing365.top/encoding-converter/">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UTF-8 与 GBK 编码转换 - 中文乱码修复 | 小兴365">
+<meta name="twitter:description" content="在线转换 UTF-8 和 GBK 编码，修复中文乱码；支持 UTF-8 与 GBK 互转、UTF-8 与 Latin-1 等常见乱码场景，纯浏览器本地处理。">
+<meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "文本编码转换器",
+  "url": "https://xiaoxing365.top/encoding-converter/",
+  "description": "在线转换 UTF-8 和 GBK 编码，修复中文乱码；支持 UTF-8 与 GBK 互转、UTF-8 与 Latin-1 等常见乱码场景，纯浏览器本地处理。",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "zh-CN",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "小兴365 工具站",
+    "url": "https://xiaoxing365.top/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "CNY"
+  }
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "首页",
+      "item": "https://xiaoxing365.top/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "文本编码转换器",
+      "item": "https://xiaoxing365.top/encoding-converter/"
+    }
+  ]
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "「浣犲ソ」怎么还原成「你好」？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "这是 UTF-8 字节被按 GBK 解读，选择「乱码 → 正常 UTF-8」方向即可。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "「ÄãºÃ」是什么乱码？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "这是 GBK 字节被按 Latin-1 显示，选择「字节乱码 → 正常 UTF-8」方向还原。"
+      }
+    }
+  ]
+}</script>
+<!-- SEO:END -->
 <style>
   :root {
     --bg: #fff; --fg: #1a1a1a; --muted: #6b7280; --border: #e5e7eb;
@@ -97,8 +171,40 @@
     </div>
   </main>
 
+  <!-- CONTENT:START -->
+<section class="tool-content card">
+  <h2>关于 文本编码转换器</h2>
+  <p>中文乱码通常不是内容坏了，而是编码被按错误的字符集解读。这个工具支持 UTF-8 与 GBK 互转，以及两种常见的乱码还原方向。</p>
+  <h2>怎么用</h2>
+  <ol>
+    <li>选择转换方向：UTF-8 → 乱码、乱码 → UTF-8、UTF-8 → 字节乱码、字节乱码 → UTF-8。</li>
+    <li>把文本粘到输入框，点「转换」。</li>
+    <li>复制结果；如果还是乱码，换另一个方向再试。</li>
+  </ol>
+  <h2>常见问题</h2>
+  <h3>「浣犲ソ」怎么还原成「你好」？</h3>
+  <p>这是 UTF-8 字节被按 GBK 解读，选择「乱码 → 正常 UTF-8」方向即可。</p>
+  <h3>「ÄãºÃ」是什么乱码？</h3>
+  <p>这是 GBK 字节被按 Latin-1 显示，选择「字节乱码 → 正常 UTF-8」方向还原。</p>
+  <p class="updated">最后更新：2026-11-25</p>
+</section>
+<!-- CONTENT:END -->
+  <!-- RELATED:START -->
+<section class="related card">
+  <h2>相关工具</h2>
+  <div class="related-links">
+    <a href="/base64/">Base64 编码解码</a>
+    <a href="/url-encode/">URL 编码解码</a>
+    <a href="/image-base64/">图片转 Base64</a>
+    <a href="/redirect-generator/">Cloudflare 重定向表达式生成器</a>
+  </div>
+</section>
+<!-- RELATED:END -->
   <footer>
     工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  <!-- FOOTER-LINKS:START -->
+<br><a href="/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/contact/">联系</a>
+<!-- FOOTER-LINKS:END -->
   </footer>
 </div>
 

@@ -3,8 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTML 实体编码解码 - 小兴365</title>
-<meta name="description" content="HTML 特殊字符转义和反转义">
+<title>HTML 实体编码解码在线工具 - 小兴365</title>
+<meta name="description" content="HTML 特殊字符转义和反转义工具，支持 &amp;amp;、&amp;lt;、&amp;gt;、&amp;quot; 等命名实体和数字实体，适合写页面、修转义和排查显示问题。">
+<!-- SEO:START -->
+<link rel="canonical" href="https://xiaoxing365.top/html-entity/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="小兴365 工具站">
+<meta property="og:title" content="HTML 实体编码解码在线工具 - 小兴365">
+<meta property="og:description" content="HTML 特殊字符转义和反转义工具，支持 &amp;amp;、&amp;lt;、&amp;gt;、&amp;quot; 等命名实体和数字实体，适合写页面、修转义和排查显示问题。">
+<meta property="og:url" content="https://xiaoxing365.top/html-entity/">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTML 实体编码解码在线工具 - 小兴365">
+<meta name="twitter:description" content="HTML 特殊字符转义和反转义工具，支持 &amp;amp;、&amp;lt;、&amp;gt;、&amp;quot; 等命名实体和数字实体，适合写页面、修转义和排查显示问题。">
+<meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "HTML 实体编码解码",
+  "url": "https://xiaoxing365.top/html-entity/",
+  "description": "HTML 特殊字符转义和反转义工具，支持 &amp;、&lt;、&gt;、&quot; 等命名实体和数字实体，适合写页面、修转义和排查显示问题。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "zh-CN",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "小兴365 工具站",
+    "url": "https://xiaoxing365.top/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "CNY"
+  }
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "首页",
+      "item": "https://xiaoxing365.top/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "HTML 实体编码解码",
+      "item": "https://xiaoxing365.top/html-entity/"
+    }
+  ]
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "转义和反转义有什么区别？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "转义把 & 变成 &amp;、\u003c 变成 &lt;；反转义做相反操作，把实体还原成原始字符。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "反转义会执行 HTML 吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不会。工具只做字符串替换，不把结果插入页面，也不会执行脚本。"
+      }
+    }
+  ]
+}</script>
+<!-- SEO:END -->
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/theme.css">
   <!-- Google -->
@@ -38,8 +112,40 @@
       <pre id="output"></pre>
     </div>
   </main>
+  <!-- CONTENT:START -->
+<section class="tool-content card">
+  <h2>关于 HTML 实体编码解码</h2>
+  <p>在 HTML 里直接写 &lt;、&gt;、&amp; 等字符可能破坏结构，评论或用户输入也需要转义。这个工具支持命名实体和数字实体的转义、反转义，反转义只按实体表解码，不会执行 HTML。</p>
+  <h2>怎么用</h2>
+  <ol>
+    <li>把要处理的文本粘到输入框。</li>
+    <li>点「转义」把特殊字符变成实体，或点「反转义」把实体还原成字符。</li>
+    <li>复制结果；反转义不会解析标签，粘进来的 HTML 只会作为文本显示。</li>
+  </ol>
+  <h2>常见问题</h2>
+  <h3>转义和反转义有什么区别？</h3>
+  <p>转义把 &amp; 变成 &amp;amp;、&lt; 变成 &amp;lt;；反转义做相反操作，把实体还原成原始字符。</p>
+  <h3>反转义会执行 HTML 吗？</h3>
+  <p>不会。工具只做字符串替换，不把结果插入页面，也不会执行脚本。</p>
+  <p class="updated">最后更新：2026-11-25</p>
+</section>
+<!-- CONTENT:END -->
+  <!-- RELATED:START -->
+<section class="related card">
+  <h2>相关工具</h2>
+  <div class="related-links">
+    <a href="/json-formatter/">JSON 格式化</a>
+    <a href="/text-stats/">文本统计</a>
+    <a href="/redirect-generator/">Cloudflare 重定向表达式生成器</a>
+    <a href="/robots-generator/">robots.txt 生成器</a>
+  </div>
+</section>
+<!-- RELATED:END -->
   <footer>
     工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  <!-- FOOTER-LINKS:START -->
+<br><a href="/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/contact/">联系</a>
+<!-- FOOTER-LINKS:END -->
   </footer>
 </div>
 <script>

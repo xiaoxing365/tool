@@ -3,8 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文本统计 - 小兴365</title>
-<meta name="description" content="统计字数、行数、字节数等信息">
+<title>在线文本统计 - 字数/行数/字节数 - 小兴365</title>
+<meta name="description" content="统计文本的字数、行数、字符数、中文字符数和 UTF-8 字节数，适合检查文章长度、标题字数和接口字段限制。">
+<!-- SEO:START -->
+<link rel="canonical" href="https://xiaoxing365.top/text-stats/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="小兴365 工具站">
+<meta property="og:title" content="在线文本统计 - 字数/行数/字节数 - 小兴365">
+<meta property="og:description" content="统计文本的字数、行数、字符数、中文字符数和 UTF-8 字节数，适合检查文章长度、标题字数和接口字段限制。">
+<meta property="og:url" content="https://xiaoxing365.top/text-stats/">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在线文本统计 - 字数/行数/字节数 - 小兴365">
+<meta name="twitter:description" content="统计文本的字数、行数、字符数、中文字符数和 UTF-8 字节数，适合检查文章长度、标题字数和接口字段限制。">
+<meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "文本统计",
+  "url": "https://xiaoxing365.top/text-stats/",
+  "description": "统计文本的字数、行数、字符数、中文字符数和 UTF-8 字节数，适合检查文章长度、标题字数和接口字段限制。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "zh-CN",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "小兴365 工具站",
+    "url": "https://xiaoxing365.top/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "CNY"
+  }
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "首页",
+      "item": "https://xiaoxing365.top/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "文本统计",
+      "item": "https://xiaoxing365.top/text-stats/"
+    }
+  ]
+}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "中文字符和字符数有什么区别？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "字符数统计所有字符；中文字符只统计中文汉字，适合按中文字数控制的场景。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "UTF-8 字节数为什么比字符数大？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "一个中文汉字通常占 3 个 UTF-8 字节，英文和数字占 1 个，所以字节数会更大。"
+      }
+    }
+  ]
+}</script>
+<!-- SEO:END -->
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/theme.css">
   <!-- Google -->
@@ -38,8 +112,40 @@
       </div>
     </div>
   </main>
+  <!-- CONTENT:START -->
+<section class="tool-content card">
+  <h2>关于 文本统计</h2>
+  <p>写文章、填标题或对接接口时，经常需要知道文本到底有多少字、多少行、多少字节。这个工具实时统计字符数、中文字符、英文单词、行数、段落数和 UTF-8 字节数。</p>
+  <h2>怎么用</h2>
+  <ol>
+    <li>把文本粘到输入框，统计结果会自动更新。</li>
+    <li>重点看「字符数（不含空格）」和「UTF-8 字节数」，分别对应字数限制和接口体积。</li>
+    <li>需要重新统计时清空输入即可。</li>
+  </ol>
+  <h2>常见问题</h2>
+  <h3>中文字符和字符数有什么区别？</h3>
+  <p>字符数统计所有字符；中文字符只统计中文汉字，适合按中文字数控制的场景。</p>
+  <h3>UTF-8 字节数为什么比字符数大？</h3>
+  <p>一个中文汉字通常占 3 个 UTF-8 字节，英文和数字占 1 个，所以字节数会更大。</p>
+  <p class="updated">最后更新：2026-11-25</p>
+</section>
+<!-- CONTENT:END -->
+  <!-- RELATED:START -->
+<section class="related card">
+  <h2>相关工具</h2>
+  <div class="related-links">
+    <a href="/json-formatter/">JSON 格式化</a>
+    <a href="/html-entity/">HTML 实体编码解码</a>
+    <a href="/redirect-generator/">Cloudflare 重定向表达式生成器</a>
+    <a href="/robots-generator/">robots.txt 生成器</a>
+  </div>
+</section>
+<!-- RELATED:END -->
   <footer>
     工具由 <a href="https://xiaoxing365.com/">小兴365</a> 维护 · <a href="/">回首页</a>
+  <!-- FOOTER-LINKS:START -->
+<br><a href="/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/contact/">联系</a>
+<!-- FOOTER-LINKS:END -->
   </footer>
 </div>
 <script>
